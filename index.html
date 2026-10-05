@@ -51,6 +51,22 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--asfalt);font-fam
 .oznakaL{width:44px;height:44px;background:var(--plava);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:30px;color:var(--bela);padding-top:4px}
 #bedz .ime{font-weight:900;font-size:20px;line-height:1}
 #bedz .sajt{font-size:12px;color:#c9ccd3;letter-spacing:.12em;line-height:1;margin-top:4px}
+#poeni .poslednja.obara{color:#ff8a8a;font-weight:700}
+#kraj{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(15,17,21,.55);z-index:5}
+#kraj.vidljiv{display:flex}
+#kraj .okvir{background:var(--krem);color:var(--tekst);border-radius:18px;padding:26px 30px;width:min(540px,100%);max-height:100%;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+#kraj .nat{font-family:Overpass,system-ui,sans-serif;font-size:12px;letter-spacing:.14em;font-weight:800;color:var(--siva)}
+#kraj h2{font-family:Overpass,system-ui,sans-serif;font-weight:900;font-size:44px;line-height:1.05;margin:6px 0 0}
+#kraj h2.polozio{color:var(--zelena)}
+#kraj h2.pao{color:var(--crvena)}
+#kraj .stat{display:flex;gap:28px;margin:12px 0 14px;color:var(--siva);font-size:15px}
+#kraj .stat b{color:var(--tekst);font-family:Overpass,system-ui,sans-serif;font-weight:900;margin-left:4px}
+#kraj ul{list-style:none;padding:0;margin:0 0 20px;border-top:1px solid var(--linija);font-size:15px}
+#kraj li{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid var(--linija)}
+#kraj li b{font-family:Overpass,system-ui,sans-serif;white-space:nowrap}
+#kraj li b.obara{color:var(--crvena)}
+#kraj button{font-family:Overpass,system-ui,sans-serif;font-weight:800;font-size:18px;background:var(--asfalt);color:var(--bela);border:0;border-radius:12px;padding:12px 24px;cursor:pointer}
+#kraj button:focus-visible{outline:3px solid var(--zuta);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){#brzinomer.preko .ogr{animation:none}}
 #greska{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:24px;text-align:center;background:var(--asfalt);font-size:18px;line-height:1.5}
 </style>
@@ -62,9 +78,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--asfalt);font-fam
 <canvas id="igra" tabindex="0" aria-label="VOZI I POLOŽI, pogled iz kola"></canvas>
 
 <div id="zadatak" class="hud kartica">
-  <div class="nat">PROBNA VOŽNJA</div>
-  <div class="naslov">Upoznaj kola</div>
-  <div class="opis">Isprobaj gas, kočnicu i migavce.</div>
+  <div class="nat">ZADATAK 1 / 8</div>
+  <div class="naslov"></div>
+  <div class="opis"></div>
 </div>
 
 <div id="retrovizor" class="hud"><div class="staklo"></div></div>
@@ -89,13 +105,23 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--asfalt);font-fam
 
 <div id="migavci" class="hud">
   <button class="migavac" id="migLevo" type="button" aria-label="Levi migavac" aria-pressed="false">◀</button>
-  <div class="podsetnik">Q / E migavci &nbsp;·&nbsp; ↑ ↓ gas i kočnica</div>
+  <div class="podsetnik">Q / E migavci &nbsp;·&nbsp; ← → volan &nbsp;·&nbsp; ↑ ↓ gas i kočnica</div>
   <button class="migavac" id="migDesno" type="button" aria-label="Desni migavac" aria-pressed="false">▶</button>
 </div>
 
 <div id="bedz" class="hud kartica">
   <div class="oznakaL">L</div>
   <div><div class="ime">VOZI I POLOŽI</div><div class="sajt">AUTOSKOLEBEOGRAD.COM</div></div>
+</div>
+
+<div id="kraj" role="dialog" aria-modal="true" aria-labelledby="krajNaslov">
+  <div class="okvir">
+    <div class="nat">KRAJ VOŽNJE</div>
+    <h2 id="krajNaslov"></h2>
+    <div class="stat"><div>Kazneni poeni <b id="krajPoeni"></b></div><div>Vreme vožnje <b id="krajVreme"></b></div></div>
+    <ul id="krajGreske"></ul>
+    <button id="voziPonovo" type="button">Vozi ponovo</button>
+  </div>
 </div>
 
 <div id="greska">Igra ne može da se pokrene. Proveri internet vezu i da li pregledač podržava WebGL.</div>
@@ -126,13 +152,9 @@ const PUT = {
   parking: 2.3,            // parking traka uz trotoar (m)
   trotoar: 4,              // sirina trotoara (m)
   ivicnjak: 0.15,          // visina ivicnjaka (m)
-  segment: 40,             // duzina jednog segmenta ulice (m)
-  brojSegmenata: 14,
-  iza: 3                   // segmenata iza auta (vide se u retrovizoru)
 };
 PUT.polaKolovoza = PUT.traka + PUT.parking;      // dve trake, po jedna u svakom smeru, i parking
 PUT.parkingD = PUT.traka + PUT.parking / 2;      // sredina parking trake
-PUT.fasada = PUT.polaKolovoza + PUT.trotoar;     // gde pocinju zgrade
 
 // Fizika: mali auto, 0 do 50 km/h za oko 6 s
 const FIZIKA = {
@@ -221,21 +243,14 @@ scena.add(sunce);
 const mat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
 const matBezMagle = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, fog: false });
 
-// ---------------------------------------------------------------
-// Kolovoz (jedna duga traka asfalta koja prati auto)
-// ---------------------------------------------------------------
-const asfalt = new THREE.Mesh(
-  new THREE.PlaneGeometry(PUT.polaKolovoza * 2, 1200).rotateX(-Math.PI / 2),
-  new THREE.MeshLambertMaterial({ color: BOJE.asfalt })
-);
-scena.add(asfalt);
-
 // Zemlja ispod svega (vidi se u daljini kroz prolaze)
 const zemlja = new THREE.Mesh(
-  new THREE.PlaneGeometry(3000, 3000).rotateX(-Math.PI / 2),
-  new THREE.MeshLambertMaterial({ color: BOJE.trava })
+  new THREE.PlaneGeometry(4000, 4000).rotateX(-Math.PI / 2),
+  new THREE.MeshLambertMaterial({ color: BOJE.trava, depthWrite: false })
 );
-zemlja.position.y = -0.05;
+// zemlja se crta prva i ne upisuje dubinu, pa nikad ne probija kroz asfalt (ni na slabijim grafickim)
+zemlja.renderOrder = -1;
+zemlja.position.set(0, -0.05, -500);
 scena.add(zemlja);
 
 // ---------------------------------------------------------------
@@ -255,51 +270,347 @@ const brda = (() => {
 scena.add(brda);
 
 // ---------------------------------------------------------------
-// Segmenti ulice: trotoari, ivicnjaci, linije, zgrade, drvece
+// Staza 1. Svaka ulica ima svoj sistem: s ide napred duz ulice,
+// d je bocni pomak od sredine (pozitivno desno). U geometriji ulice
+// x = d, z = -s, a grupa ulice je pomerena i zarotirana u svet.
 // ---------------------------------------------------------------
-function napraviSegment(seme) {
-  const r = rng(seme), s = new Spajac(), L = PUT.segment;
-  const { polaKolovoza: pk, trotoar: tr, ivicnjak: iv, fasada: fa } = PUT;
+const TIPOVI = {
+  // A: po jedna traka u svakom smeru i parking traka uz oba trotoara
+  A: { levo: 5.8, desno: 5.8, parkingLevo: true, parkingDesno: true, trake: [1.75] },
+  // B: dve trake u nasem smeru, jedna u suprotnom, parking desno
+  B: { levo: 7.0, desno: 5.8, parkingLevo: false, parkingDesno: true, trake: [-1.75, 1.75] },
+  // C: uska poprecna ulica bez parkinga
+  C: { levo: 3.5, desno: 3.5, parkingLevo: false, parkingDesno: false, trake: [1.75] }
+};
+const PARKING_D = PUT.parkingD;
+const SEG = 40;                      // duzina dela ulice koji je jedan draw call
+const S_STOP_RASKRSNICA = 420, S_STOP = 415;
+const S_PRELAZ = 600;
+const S_SEMAFOR_RASKRSNICA = 800, S_SEMAFOR = 794;
+const S_SKRETANJE = 1120;            // raskrsnica na kojoj se skrece levo
+const B_SKR = 9.75;                  // s na skolskoj ulici gde se zavrsava luk skretanja
+const S_SKOLA = 40;                  // znak zona skole
+const PARKING_MESTO = [329, 338];    // oznaceno mesto za parkiranje (od, do)
+const AUTO_NAPRED = 1.8, AUTO_NAZAD = 2.2;   // od vozaca do prednjeg i zadnjeg kraja kola
 
-  // isprekidana linija po sredini (3 m linija, 3 m razmak)
-  for (let z = -1.5; z > -L; z -= 6) s.kutija(0.15, 0.02, 3, BOJE.linija, 0, 0, z - 1.5);
-  // tanka isprekidana linija koja odvaja parking traku
-  for (const strana of [-1, 1])
-    for (let z = -0.5; z > -L; z -= 3) s.kutija(0.1, 0.02, 1.5, BOJE.linija, strana * PUT.traka, 0, z - 0.75);
+const ULICE = [
+  { // 0: glavna ulica, od parkinga do skretanja levo
+    O: [0, 0], psi: 0, od: -150, do: S_SKRETANJE + 140,
+    deonice: [[-150, S_SEMAFOR_RASKRSNICA, 'A'], [S_SEMAFOR_RASKRSNICA, S_SKRETANJE + 140, 'B']],
+    raskrsnice: [[S_STOP_RASKRSNICA, 3.5], [S_SEMAFOR_RASKRSNICA, 3.5], [S_SKRETANJE, 5.8]],
+    kolaDesno: [-6.5, 9], bezKola: [[-16, 21], [S_PRELAZ - 12, S_PRELAZ + 12]], seme: 11
+  },
+  { // 1: skolska ulica posle skretanja levo
+    O: [0, -S_SKRETANJE], psi: Math.PI / 2, od: 7.0, do: PARKING_MESTO[1] + 100,
+    deonice: [[7.0, PARKING_MESTO[1] + 100, 'A']], kolaDesno: [PARKING_MESTO[0] - 31, PARKING_MESTO[1] + 5],
+    bezKola: [[PARKING_MESTO[0] - 37, PARKING_MESTO[1] + 11]], seme: 23
+  },
+  // poprecne ulice (kratki krakovi raskrsnica)
+  { O: [0, -S_SKRETANJE], psi: -Math.PI / 2, od: 5.8, do: 120, deonice: [[5.8, 120, 'A']], seme: 31 },
+  { O: [0, -S_STOP_RASKRSNICA], psi: -Math.PI / 2, od: 5.8, do: 110, deonice: [[5.8, 110, 'C']], seme: 41 },
+  { O: [0, -S_STOP_RASKRSNICA], psi: Math.PI / 2, od: 5.8, do: 110, deonice: [[5.8, 110, 'C']], seme: 43 },
+  { O: [0, -S_SEMAFOR_RASKRSNICA], psi: -Math.PI / 2, od: 5.8, do: 110, deonice: [[5.8, 110, 'C']], seme: 47 },
+  { O: [0, -S_SEMAFOR_RASKRSNICA], psi: Math.PI / 2, od: 7.0, do: 110, deonice: [[7.0, 110, 'C']], seme: 53 }
+];
 
-  for (const strana of [-1, 1]) {
-    // ivicnjak i trotoar
-    s.kutija(0.25, iv, L, BOJE.ivicnjak, strana * (pk + 0.125), 0, -L / 2);
-    s.kutija(tr - 0.25, iv, L, BOJE.trotoar, strana * (pk + 0.25 + (tr - 0.25) / 2), 0, -L / 2);
-
-    // zgrade ili park
-    const park = r() < 0.18;
-    if (park) {
-      s.kutija(30, 0.08, L, BOJE.trava, strana * (fa + 15), 0, -L / 2);
-      for (let i = 0; i < 5; i++) drvo(s, r, strana * (fa + 3 + r() * 22), -r() * L, 1.2);
-    } else {
-      let z = 0;
-      while (z > -L + 4) {
-        const sir = Math.min(8 + r() * 10, L + z);
-        if (sir < 4) break;
-        zgrada(s, r, strana, z, sir);
-        z -= sir;
-      }
+function tipNa(u, s) {
+  for (const [a, b, t] of u.deonice) if (s >= a && s < b) return TIPOVI[t];
+  return TIPOVI[u.deonice[u.deonice.length - 1][2]];
+}
+// Trake u nasem smeru na datom mestu, sleva nadesno (poslednja je parking ako postoji)
+function trakeNa(u, s) {
+  const t = tipNa(u, s);
+  return t.parkingDesno ? [...t.trake, PARKING_D] : t.trake;
+}
+// Intervali [a, b] bez rupa
+function oduzmi(intervali, rupe) {
+  let out = intervali;
+  for (const [p, q] of rupe) {
+    const novo = [];
+    for (const [a, b] of out) {
+      if (q <= a || p >= b) { novo.push([a, b]); continue; }
+      if (p > a) novo.push([a, p]);
+      if (q < b) novo.push([q, b]);
     }
-
-    // parkirana kola uz ivicu trotoara
-    for (let z = -3; z > -L + 2; z -= 6) {
-      if (r() < 0.55) kola(s, KOLA[Math.floor(r() * KOLA.length)], strana * PUT.parkingD, z - r() * 0.8, strana < 0 ? Math.PI : 0);
-    }
-
-    // drvored na trotoaru
-    for (let z = -6 - r() * 4; z > -L; z -= 12 + r() * 6) drvo(s, r, strana * (pk + tr - 1.1), z, 1);
+    out = novo;
   }
-  const m = s.napravi(mat);
-  return m;
+  return out;
+}
+// Deli interval na granicama delova od SEG metara
+function iseci(a, b) {
+  const out = [];
+  let p = a;
+  while (p < b - 0.001) {
+    const q = Math.min(b, (Math.floor(p / SEG + 1e-6) + 1) * SEG);
+    out.push([p, q]);
+    p = q;
+  }
+  return out;
 }
 
-function zgrada(s, r, strana, z0, sir) {
+const DELOVI = [];                   // svi delovi ulica, za odsecanje po daljini
+
+function izgradiUlicu(u, dodaci) {
+  u.raskrsnice ??= []; u.kolaDesno ??= []; u.bezKola ??= [];
+  u.parkirana = [];                  // s parkiranih kola u desnoj parking traci (za sudare)
+  u.cos = Math.cos(u.psi); u.sin = Math.sin(u.psi);
+  const r = rng(u.seme);
+  const g = new THREE.Group();
+  g.position.set(u.O[0], 0, u.O[1]);
+  g.rotation.y = u.psi;
+  scena.add(g);
+  u.grupa = g;
+
+  const delovi = new Map();
+  const S = s => {
+    const k = Math.floor(s / SEG);
+    let sp = delovi.get(k);
+    if (!sp) { sp = new Spajac(); delovi.set(k, sp); }
+    return sp;
+  };
+  const K = (d, y, s, sirD, vis, duzS, boja) => S(s).kutija(sirD, vis, duzS, boja, d, y, -s);
+  const rupe = dodatak => u.raskrsnice.map(([s, p]) => [s - p - dodatak, s + p + dodatak]);
+  // krak raskrsnice pocinje na ivici glavne ulice: zgrade, drvece i kola tek posle njenog trotoara
+  const odIvice = (a, dodatak) => Math.max(a, u.od + PUT.trotoar + dodatak);
+  const parkiraj = (strana, sk) => {
+    kola(S(sk), KOLA[Math.floor(r() * KOLA.length)], strana * PARKING_D, -sk, strana < 0 ? Math.PI : 0);
+    if (strana > 0) u.parkirana.push(sk);
+  };
+
+  for (const [a, b, tipIme] of u.deonice) {
+    const t = TIPOVI[tipIme];
+    // asfalt
+    for (const [p, q] of iseci(a, b)) K((t.desno - t.levo) / 2, -0.02, (p + q) / 2, t.levo + t.desno, 0.02, q - p, BOJE.asfalt);
+
+    // oznake na kolovozu (prekidaju se u raskrsnicama)
+    const slobodno = oduzmi([[a, b]], rupe(0));
+    const isprekidana = (d, sir, crta, razmak) => {
+      for (const [p, q] of slobodno)
+        for (let s0 = Math.ceil(p / (crta + razmak)) * (crta + razmak); s0 + crta <= q; s0 += crta + razmak)
+          K(d, 0, s0 + crta / 2, sir, 0.02, crta, BOJE.linija);
+    };
+    const puna = (d, sir) => {
+      for (const [p, q] of slobodno) for (const [x, y] of iseci(p, q)) K(d, 0, (x + y) / 2, sir, 0.02, y - x, BOJE.linija);
+    };
+    if (tipIme === 'B') { isprekidana(0, 0.15, 3, 3); puna(-3.4, 0.12); puna(-3.62, 0.12); }
+    else isprekidana(0, 0.15, 3, 3);
+    if (t.parkingLevo) isprekidana(-3.5, 0.1, 1.5, 1.5);
+    if (t.parkingDesno) isprekidana(3.5, 0.1, 1.5, 1.5);
+
+    for (const strana of [-1, 1]) {
+      const ivica = strana < 0 ? t.levo : t.desno;
+      // ivicnjak i trotoar
+      for (const [p, q] of slobodno) for (const [x, y] of iseci(p, q)) {
+        K(strana * (ivica + 0.125), 0, (x + y) / 2, 0.25, PUT.ivicnjak, y - x, BOJE.ivicnjak);
+        K(strana * (ivica + 0.25 + (PUT.trotoar - 0.25) / 2), 0, (x + y) / 2, PUT.trotoar - 0.25, PUT.ivicnjak, y - x, BOJE.trotoar);
+      }
+      // zgrade i poneki park
+      for (const [p, q] of oduzmi([[odIvice(a, 0.6), b]], rupe(PUT.trotoar + 0.6))) {
+        let s0 = p;
+        while (q - s0 >= 4) {
+          if (q - s0 > 34 && r() < 0.1) {
+            const xp = strana * (ivica + PUT.trotoar + 15);
+            for (const [x, y] of iseci(s0, s0 + 30)) K(xp, 0, (x + y) / 2, 30, 0.08, y - x, BOJE.trava);
+            for (let i = 0; i < 5; i++) { const sz = s0 + 3 + r() * 24; drvo(S(sz), r, strana * (ivica + PUT.trotoar + 3 + r() * 22), -sz, 1.2); }
+            s0 += 30;
+            continue;
+          }
+          const sir = Math.min(8 + r() * 10, q - s0);
+          zgrada(S(s0 + sir / 2), r, strana, -s0, sir, ivica);
+          s0 += sir;
+        }
+      }
+      // drvored na trotoaru
+      // (dalje od raskrsnica, da ne zaklanjaju znake i semafore)
+      for (const [p, q] of oduzmi([[odIvice(a, 6), b]], rupe(PUT.trotoar + 9)))
+        for (let s0 = p + 4 + r() * 4; s0 < q - 2; s0 += 12 + r() * 6) drvo(S(s0), r, strana * (ivica + PUT.trotoar - 1.0), -s0, 1);
+      // parkirana kola uz ivicu trotoara
+      if (strana < 0 ? t.parkingLevo : t.parkingDesno) {
+        for (const [p, q] of oduzmi([[odIvice(a, 3), b]], [...rupe(PUT.trotoar + 3), ...u.bezKola]))
+          for (let s0 = p + 2.5; s0 < q - 2.5; s0 += 6)
+            if (r() < 0.55) parkiraj(strana, s0 + (r() - 0.5) * 0.8);
+      }
+    }
+  }
+  for (const sk of u.kolaDesno) parkiraj(1, sk);
+  if (dodaci) dodaci(K, S);
+
+  g.updateMatrixWorld(true);
+  for (const sp of delovi.values()) {
+    const m = sp.napravi(mat);
+    g.add(m);
+    m.updateMatrixWorld(true);
+    const bs = m.geometry.boundingSphere;
+    DELOVI.push({ m, c: bs.center.clone().applyMatrix4(m.matrixWorld), r: bs.radius });
+  }
+}
+
+// Strelice na kolovozu (u geometriji ulice, napred je -z)
+function strelica(sp, d, s, smer) {
+  const B = BOJE.linija;
+  const glava = (x, z, rotY) => {
+    const gg = new THREE.ConeGeometry(0.5, 1.1, 3).rotateX(-Math.PI / 2);
+    if (rotY) gg.rotateY(rotY);
+    gg.scale(1, 0.02, 1);
+    sp.dodaj(gg, B, x, 0.02, z);
+  };
+  if (smer === 'pravo') {
+    sp.kutija(0.18, 0.02, 2.6, B, d, 0, -s);
+    glava(d, -s - 1.8, 0);
+  } else {
+    sp.kutija(0.18, 0.02, 2.2, B, d, 0, -s);
+    sp.kutija(0.9, 0.02, 0.18, B, d - 0.36, 0, -s - 1.1);
+    glava(d - 1.2, -s - 1.1, Math.PI / 2);
+  }
+}
+
+// Glavna ulica: STOP linija, pesacki prelaz, linija kod semafora, strelice
+izgradiUlicu(ULICE[0], (K, S) => {
+  K(1.75, 0, S_STOP + 0.25, 3.4, 0.025, 0.5, BOJE.linija);
+  for (let d = -5.3; d <= 5.4; d += 1.0) K(d, 0, S_PRELAZ, 0.5, 0.025, 4, BOJE.linija);
+  K(1.75, 0, S_SEMAFOR + 0.2, 3.4, 0.025, 0.4, BOJE.linija);
+  for (const s of [S_SKRETANJE - 45, S_SKRETANJE - 22]) { strelica(S(s), -1.75, s, 'levo'); strelica(S(s), 1.75, s, 'pravo'); }
+});
+// Skolska ulica: zuto oznaceno mesto za parkiranje
+izgradiUlicu(ULICE[1], (K) => {
+  const [a, b] = PARKING_MESTO, zuta = 0xF4C20D;
+  K(PARKING_D, 0, a, 2.1, 0.025, 0.15, zuta);
+  K(PARKING_D, 0, b, 2.1, 0.025, 0.15, zuta);
+  K(3.62, 0, (a + b) / 2, 0.15, 0.025, b - a, zuta);
+  K(5.68, 0, (a + b) / 2, 0.15, 0.025, b - a, zuta);
+});
+for (let i = 2; i < ULICE.length; i++) izgradiUlicu(ULICE[i]);
+
+// Postavlja objekat u koordinate ulice
+function postavi(u, obj, d, s) {
+  obj.position.set(d, 0, -s);
+  u.grupa.add(obj);
+  return obj;
+}
+
+// ---------------------------------------------------------------
+// Saobracajni znaci (lica se crtaju na canvas teksturi)
+// ---------------------------------------------------------------
+const CRTANJA = [];
+function tekstura(crtaj, w = 128, h = 128) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  const nacrtaj = () => { const k = c.getContext('2d'); k.clearRect(0, 0, w, h); crtaj(k, w, h); t.needsUpdate = true; };
+  nacrtaj();
+  CRTANJA.push(nacrtaj);
+  return t;
+}
+// kad se ucita Overpass, ponovo nacrtaj natpise
+document.fonts?.ready.then(() => CRTANJA.forEach(f => f()));
+const FONT = (vel, tez = 900) => `${tez} ${vel}px Overpass, Arial, sans-serif`;
+
+function krug(k, x, y, r, boja) { k.beginPath(); k.arc(x, y, r, 0, Math.PI * 2); k.fillStyle = boja; k.fill(); }
+function natpis(k, tekst, x, y, vel, boja) {
+  k.font = FONT(vel); k.fillStyle = boja; k.textAlign = 'center'; k.textBaseline = 'middle';
+  k.fillText(tekst, x, y + vel * 0.08);
+}
+
+const TEX = {
+  stop: tekstura(k => {
+    const okt = (r, boja) => {
+      k.beginPath();
+      for (let i = 0; i < 8; i++) { const a = Math.PI / 8 + i * Math.PI / 4; k.lineTo(64 + r * Math.cos(a), 64 + r * Math.sin(a)); }
+      k.closePath(); k.fillStyle = boja; k.fill();
+    };
+    okt(63, '#ffffff'); okt(57, '#C8102E');
+    natpis(k, 'STOP', 64, 64, 34, '#ffffff');
+  }),
+  ogranicenje50: tekstura(k => { krug(k, 64, 64, 63, '#C8102E'); krug(k, 64, 64, 48, '#ffffff'); natpis(k, '50', 64, 64, 50, '#15171C'); }),
+  pesacki: tekstura(k => {
+    k.fillStyle = '#1f5fbf'; k.beginPath(); k.roundRect(2, 2, 124, 124, 10); k.fill();
+    k.fillStyle = '#ffffff'; k.beginPath(); k.moveTo(64, 14); k.lineTo(114, 110); k.lineTo(14, 110); k.closePath(); k.fill();
+    k.fillStyle = '#15171C';
+    krug(k, 66, 48, 8, '#15171C');
+    k.lineWidth = 7; k.lineCap = 'round'; k.strokeStyle = '#15171C';
+    k.beginPath(); k.moveTo(64, 58); k.lineTo(60, 80); k.lineTo(50, 100); k.moveTo(60, 80); k.lineTo(74, 100);
+    k.moveTo(63, 64); k.lineTo(50, 74); k.moveTo(63, 64); k.lineTo(76, 72); k.stroke();
+    k.fillRect(22, 102, 84, 5);
+  }),
+  skola: tekstura((k, w, h) => {
+    k.fillStyle = '#ffffff'; k.beginPath(); k.roundRect(2, 2, w - 4, h - 4, 10); k.fill();
+    k.strokeStyle = '#C8102E'; k.lineWidth = 8; k.beginPath(); k.roundRect(6, 6, w - 12, h - 12, 8); k.stroke();
+    natpis(k, 'ZONA', 64, 30, 22, '#15171C');
+    natpis(k, 'ŠKOLE', 64, 54, 22, '#15171C');
+    krug(k, 64, 112, 40, '#C8102E'); krug(k, 64, 112, 30, '#ffffff');
+    natpis(k, '30', 64, 112, 34, '#15171C');
+  }, 128, 160),
+  parking: tekstura(k => {
+    k.fillStyle = '#2846A0'; k.beginPath(); k.roundRect(2, 2, 124, 124, 10); k.fill();
+    natpis(k, 'P', 64, 64, 86, '#ffffff');
+  })
+};
+
+const geoStub = new THREE.CylinderGeometry(0.045, 0.045, 1, 6).translate(0, 0.5, 0);
+const matStub = new THREE.MeshLambertMaterial({ color: 0x6b6f77 });
+function znak(tex, sir, vis, stub = 2.1) {
+  const g = new THREE.Group();
+  const st = new THREE.Mesh(geoStub, matStub);
+  st.scale.y = stub + vis * 0.5;
+  g.add(st);
+  const lice = new THREE.Mesh(new THREE.PlaneGeometry(sir, vis),
+    new THREE.MeshLambertMaterial({ map: tex, alphaTest: 0.5, side: THREE.DoubleSide }));
+  lice.position.set(0, stub + vis / 2, 0.06);
+  g.add(lice);
+  return g;
+}
+
+postavi(ULICE[0], znak(TEX.ogranicenje50, 0.75, 0.75), 6.4, 70);
+postavi(ULICE[0], znak(TEX.stop, 0.85, 0.85, 2.2), 6.2, S_STOP - 3);
+// natpis STOP na kolovozu ispred linije
+{
+  const t = tekstura(k => natpis(k, 'STOP', 128, 64, 92, '#f4f1e6'), 256, 128);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 3.6).rotateX(-Math.PI / 2),
+    new THREE.MeshLambertMaterial({ map: t, transparent: true, depthWrite: false }));
+  m.position.y = 0.03;
+  postavi(ULICE[0], m, 1.75, S_STOP - 4.5);
+}
+postavi(ULICE[0], znak(TEX.pesacki, 0.75, 0.75), 6.4, S_PRELAZ - 3);
+postavi(ULICE[0], znak(TEX.pesacki, 0.75, 0.75), -6.4, S_PRELAZ - 3);
+postavi(ULICE[1], znak(TEX.skola, 0.8, 1.0), 6.4, S_SKOLA);
+postavi(ULICE[1], znak(TEX.parking, 0.7, 0.7), 6.3, PARKING_MESTO[0] - 1);
+
+// ---------------------------------------------------------------
+// Semafor
+// ---------------------------------------------------------------
+const LAMPE = [];
+function semafor() {
+  const g = new THREE.Group();
+  const st = new THREE.Mesh(geoStub, matStub);
+  st.scale.y = 3.0;
+  g.add(st);
+  const glava = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.08, 0.3), new THREE.MeshLambertMaterial({ color: 0x1b1d22 }));
+  glava.position.set(0, 3.5, 0);
+  g.add(glava);
+  for (const [ime, ugasena, upaljena, y] of [
+    ['crveno', 0x3a1414, 0xff3b30, 0.33], ['zuto', 0x3a3214, 0xffc400, 0], ['zeleno', 0x12301c, 0x2ee06a, -0.33]]) {
+    const m = new THREE.Mesh(new THREE.CircleGeometry(0.125, 16), new THREE.MeshBasicMaterial({ color: ugasena }));
+    m.position.set(0, 3.5 + y, 0.16);
+    g.add(m);
+    LAMPE.push({ ime, m, ugasena, upaljena });
+  }
+  return g;
+}
+postavi(ULICE[0], semafor(), 6.4, S_SEMAFOR + 1.5);
+postavi(ULICE[0], semafor(), -7.6, S_SEMAFOR_RASKRSNICA + 5);
+
+function postaviSvetla(stanje) {
+  const upaljeno = {
+    crveno: stanje === 'crveno' || stanje === 'crvenoZuto',
+    zuto: stanje === 'zuto' || stanje === 'crvenoZuto',
+    zeleno: stanje === 'zeleno'
+  };
+  for (const l of LAMPE) l.m.material.color.setHex(upaljeno[l.ime] ? l.upaljena : l.ugasena);
+}
+postaviSvetla('zeleno');
+
+function zgrada(s, r, strana, z0, sir, ivica) {
   const spratova = SPRATOVI[Math.floor(r() * SPRATOVI.length)];
   const radnja = sir >= 7 && r() < 0.4;
   const visPrizemlja = radnja ? 4.2 : 3.1;
@@ -309,7 +620,7 @@ function zgrada(s, r, strana, z0, sir) {
   const uvlacenje = radnja ? 0 : r() * 1.2;
   const boja = FASADE[Math.floor(r() * FASADE.length)];
   const venac = new THREE.Color(boja).multiplyScalar(0.86).getHex();
-  const xFasade = strana * (PUT.fasada + uvlacenje);
+  const xFasade = strana * (ivica + PUT.trotoar + uvlacenje);
   const xIspred = xFasade - strana * 0.02;
   const cz = z0 - sir / 2;
   s.kutija(dub, vis, sir - 0.3, boja, xFasade + strana * dub / 2, 0, cz);
@@ -368,20 +679,12 @@ function drvo(s, r, x, z, vel) {
   s.dodaj(g, r() < 0.5 ? BOJE.krosnja : BOJE.krosnja2, x, 3.2 * v, z, r() * 3);
 }
 
-const segmenti = [];
-for (let i = 0; i < PUT.brojSegmenata; i++) {
-  const m = napraviSegment(1000 + i * 17);
-  m.position.z = (PUT.iza - i) * PUT.segment;
-  scena.add(m);
-  segmenti.push(m);
-}
-
 // ---------------------------------------------------------------
 // Kamera i unutrasnjost kola (hauba, tabla, A stubovi, volan)
 // ---------------------------------------------------------------
 const VOZAC_X = -0.15;               // vozac sedi malo levo od sredine kola
 const VISINA_OKA = 1.2;
-const kamera = new THREE.PerspectiveCamera(60, 16 / 9, 0.05, 2000);
+const kamera = new THREE.PerspectiveCamera(60, 16 / 9, 0.1, 2000);
 scena.add(kamera);
 
 const kokpit = new THREE.Group();
@@ -468,21 +771,28 @@ function postaviRetrovizor(w, h) {
 }
 
 // ---------------------------------------------------------------
-// Stanje auta i kontrole
+// Stanje auta
 // ---------------------------------------------------------------
 const auto = {
-  z: 0,                              // napred je -z
-  x: PUT.traka / 2,                  // desna traka
-  v: 0,                              // m/s
-  a: 0                               // trenutno ubrzanje (za naginjanje kamere)
+  ul: 0, s: 0, d: PARKING_D, ciljD: PARKING_D,   // ulica, polozaj duz ulice, bocni pomak
+  v: 0, a: 0, bocno: 0,                           // brzina, ubrzanje, bocna brzina (m/s)
+  skretanje: null,                                // luk skretanja dok traje
+  x: 0, z: 0, yaw: 0,                             // polozaj u svetu
+  udarac: 0                                       // trajanje odbijanja od ivicnjaka
 };
 
-const tasteri = { gas: false, kocnica: false };
-const MAPA = { ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'kocnica', KeyS: 'kocnica' };
+// ---------------------------------------------------------------
+// Kontrole
+// ---------------------------------------------------------------
+const tasteri = { gas: false, kocnica: false, levo: false, desno: false };
+const MAPA = {
+  ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'kocnica', KeyS: 'kocnica',
+  ArrowLeft: 'levo', KeyA: 'levo', ArrowRight: 'desno', KeyD: 'desno'
+};
 const STRELICE = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space']);
 
 // Migavci: Q levi, E desni, ponovni pritisak gasi. Treptanje oko 1,5 Hz.
-// Sam se gasi posle zavrsenog manevra: staza poziva ugasiMigavac().
+// Sam se gasi posle zavrsenog skretanja ili prestrojavanja.
 const migavac = { smer: null, t: 0 };
 const PERIOD_MIGAVCA = 0.667;
 const elMigLevo = document.getElementById('migLevo');
@@ -491,6 +801,7 @@ const elMigDesno = document.getElementById('migDesno');
 function prebaciMigavac(smer) {
   migavac.smer = migavac.smer === smer ? null : smer;
   migavac.t = 0;
+  if (ispit) { ispit.migavacBez = 0; ispit.migavacKaznjen = false; }
   elMigLevo.classList.toggle('ukljucen', migavac.smer === 'levo');
   elMigDesno.classList.toggle('ukljucen', migavac.smer === 'desno');
   elMigLevo.setAttribute('aria-pressed', migavac.smer === 'levo');
@@ -502,29 +813,412 @@ elMigDesno.addEventListener('click', () => prebaciMigavac('desno'));
 
 addEventListener('keydown', e => {
   if (STRELICE.has(e.code)) e.preventDefault();
-  const t = MAPA[e.code]; if (t) tasteri[t] = true;
-  if (!e.repeat && e.code === 'KeyQ') prebaciMigavac('levo');
-  if (!e.repeat && e.code === 'KeyE') prebaciMigavac('desno');
+  const t = MAPA[e.code];
+  if (t) tasteri[t] = true;
+  if (e.repeat) return;
+  if (e.code === 'KeyQ') prebaciMigavac('levo');
+  if (e.code === 'KeyE') prebaciMigavac('desno');
+  if (t === 'levo' || t === 'desno') volan(t);
 });
 addEventListener('keyup', e => {
   const t = MAPA[e.code]; if (t) tasteri[t] = false;
 });
-addEventListener('blur', () => { tasteri.gas = tasteri.kocnica = false; });
-document.addEventListener('visibilitychange', () => { if (document.hidden) tasteri.gas = tasteri.kocnica = false; });
+function pustiSve() { for (const k in tasteri) tasteri[k] = false; }
+addEventListener('blur', pustiSve);
+document.addEventListener('visibilitychange', () => { if (document.hidden) pustiSve(); });
 platno.focus();
 
-function fizika(dt) {
-  let a = -FIZIKA.otpor - FIZIKA.vazduh * auto.v * auto.v;
-  if (tasteri.gas) a += FIZIKA.gas * (1 - auto.v / FIZIKA.vMaks) + FIZIKA.otpor;
-  if (tasteri.kocnica) a -= FIZIKA.kocnica;
-  if (auto.v <= 0 && a < 0) a = 0;
-  auto.v = Math.max(0, auto.v + a * dt);
-  auto.z -= auto.v * dt;
-  auto.a += (a - auto.a) * Math.min(1, dt * 4);
+// Levo i desno: prestrojavanje u susednu traku, a na raskrsnici skretanje
+function uLevojTraci() { return Math.abs(auto.ciljD + 1.75) < 0.01; }
+function volan(smer) {
+  if (ispit.kraj || auto.skretanje) return;
+  const u = ULICE[auto.ul];
+  if (smer === 'levo' && auto.ul === 0 && auto.s > S_SKRETANJE - 45 && uLevojTraci()) {
+    ispit.zahtevSkretanja = true;
+    return;
+  }
+  const trake = trakeNa(u, auto.s);
+  let i = 0;
+  for (let k = 1; k < trake.length; k++) if (Math.abs(trake[k] - auto.ciljD) < Math.abs(trake[i] - auto.ciljD)) i = k;
+  const j = i + (smer === 'levo' ? -1 : 1);
+  if (j < 0) { pokaziPoruku('Ne prelazi u suprotnu traku', 2); return; }
+  if (j >= trake.length) { ivicnjak(); return; }
+  auto.ciljD = trake[j];
+}
+
+function ivicnjak() {
+  if (auto.v < 0.5 || ispit.ivicnjakPauza > 0) return;
+  ispit.ivicnjakPauza = 2;
+  auto.udarac = 0.5;
+  kazna(2, 'Prelazak preko linije trotoara');
 }
 
 // ---------------------------------------------------------------
-// Petlja
+// Zadaci i ispit
+// ---------------------------------------------------------------
+const ZADACI = [
+  { naslov: 'Polazak sa parkinga', opis: 'Uključi levi migavac (Q), pa se strelicom ← uključi u saobraćaj.' },
+  { naslov: 'Ograničenje 50 km/h', opis: 'Gradska ulica. Ne prelazi 50 km/h.' },
+  { naslov: 'Raskrsnica sa znakom STOP', opis: 'Potpuno se zaustavi pre bele linije, pa propusti vozilo zdesna.' },
+  { naslov: 'Pešački prelaz', opis: 'Uspori i propusti pešaka koji prelazi ulicu.' },
+  { naslov: 'Semafor', opis: 'Na crveno stani pre linije. Kreni tek kad se upali zeleno.' },
+  { naslov: 'Prestrojavanje u levu traku', opis: 'Uključi levi migavac, pogledaj u retrovizor, pa pređi levo strelicom ←.' },
+  { naslov: 'Skretanje levo', opis: 'Raskrsnica bez znakova. Propusti vozila zdesna i iz suprotnog smera, pa skreni levo sa ←.' },
+  { naslov: 'Zona škole i parkiranje', opis: 'Vozi najviše 30 km/h. Uz desni migavac se parkiraj na označeno žuto mesto.' }
+];
+const MAKS_POENA = 10;
+
+let ispit = null;
+function noviIspit() {
+  ispit = {
+    zadatak: 0, poeni: 0, greske: [], kraj: false, polozio: null, krajT: 0,
+    pocetak: null, trajanje: 0,
+    manevar: null, zahtevSkretanja: false,
+    stop: { stajanje: 0, ovajPut: false, zaustavio: false, daleko: false, gotovo: false },
+    semafor: { stanje: 'zeleno', t: 0, stajanje: 0, promenjen: false, gotovo: false },
+    brzina: { nivo: 0, ispod: 0, unos: null },
+    kocenje: { aktivno: false, v0: 0, ocekivano: false },
+    migavacBez: 0, migavacKaznjen: false,
+    parkiranje: 0, ivicnjakPauza: 0, poruka: '', porukaT: 0
+  };
+}
+
+const elZadNat = document.querySelector('#zadatak .nat');
+const elZadNaslov = document.querySelector('#zadatak .naslov');
+const elZadOpis = document.querySelector('#zadatak .opis');
+const elBrojPoena = document.getElementById('brojPoena');
+const elPoslednja = document.getElementById('poslednjaGreska');
+
+function prikaziZadatak() {
+  const i = Math.min(ispit.zadatak, ZADACI.length - 1);
+  elZadNat.textContent = `ZADATAK ${i + 1} / ${ZADACI.length}`;
+  elZadNaslov.textContent = ZADACI[i].naslov;
+  elZadOpis.textContent = ZADACI[i].opis;
+}
+function prikaziPoene(unos) {
+  elBrojPoena.textContent = ispit.poeni;
+  if (unos) {
+    elPoslednja.textContent = unos.obara ? unos.tekst : `${unos.tekst}, +${unos.poeni}`;
+    elPoslednja.classList.toggle('obara', !!unos.obara);
+  } else { elPoslednja.textContent = ''; elPoslednja.classList.remove('obara'); }
+}
+function zavrsiZadatak(i) {
+  if (ispit.zadatak !== i) return;
+  ispit.zadatak = i + 1;
+  if (ispit.zadatak < ZADACI.length) prikaziZadatak();
+}
+
+function kazna(poeni, tekst) {
+  if (ispit.kraj) return null;
+  const unos = { zadatak: Math.min(ispit.zadatak, ZADACI.length - 1) + 1, tekst, poeni };
+  ispit.greske.push(unos);
+  ispit.poeni += poeni;
+  prikaziPoene(unos);
+  if (ispit.poeni >= MAKS_POENA) zavrsi(false);
+  return unos;
+}
+function izmeniKaznu(unos, poeni, tekst) {
+  if (ispit.kraj) return;
+  ispit.poeni += poeni - unos.poeni;
+  unos.poeni = poeni; unos.tekst = tekst;
+  prikaziPoene(unos);
+  if (ispit.poeni >= MAKS_POENA) zavrsi(false);
+}
+function obori(tekst) {
+  if (ispit.kraj) return;
+  const unos = { zadatak: Math.min(ispit.zadatak, ZADACI.length - 1) + 1, tekst, poeni: 0, obara: true };
+  ispit.greske.push(unos);
+  prikaziPoene(unos);
+  zavrsi(false);
+}
+function zavrsi(polozio) {
+  if (ispit.kraj) return;
+  ispit.kraj = true;
+  ispit.polozio = polozio && ispit.poeni < MAKS_POENA && !ispit.greske.some(g => g.obara);
+  ispit.trajanje = ispit.pocetak === null ? 0 : vreme - ispit.pocetak;
+  ispit.krajT = 0;
+}
+function pokaziPoruku(tekst, sekundi) { ispit.poruka = tekst; ispit.porukaT = sekundi; }
+
+// ---------------------------------------------------------------
+// Manevri: prestrojavanje i skretanje
+// ---------------------------------------------------------------
+function zapocniManevar(smer, tip) {
+  ispit.manevar = { smer, tip };
+  if (migavac.smer !== smer) kazna(2, tip === 'skretanje' ? 'Skretanje bez migavca' : 'Prestrojavanje bez migavca');
+  else if (migavac.t < 1) kazna(1, 'Migavac uključen prekasno');
+}
+function zavrsiManevar() {
+  if (!ispit.manevar) return;
+  if (migavac.smer === ispit.manevar.smer) ugasiMigavac();
+  ispit.manevar = null;
+}
+
+// Skretanje levo prati luk kruga od trake u kojoj je auto do desne trake skolske ulice
+function pocetakSkretanja(d) { return S_SKRETANJE - (d + B_SKR - 1.75); }
+function zapocniSkretanje() {
+  const d = auto.d, R = d + B_SKR, a = R - 1.75;
+  ispit.manevar = null;
+  auto.ciljD = d; auto.bocno = 0;
+  if (ispit.zadatak === 5) {
+    if (d > 0) kazna(2, 'Nisi se prestrojio u levu traku');
+    zavrsiZadatak(5);
+  }
+  auto.skretanje = { cx: -B_SKR, cz: -(S_SKRETANJE - a), R, theta: 0 };
+  zapocniManevar('levo', 'skretanje');
+  if (!ispit.zahtevSkretanja) pokaziPoruku('Ispitivač: ovde skreni levo', 2.5);
+}
+
+// ---------------------------------------------------------------
+// Fizika i kretanje
+// ---------------------------------------------------------------
+function fizika(dt) {
+  const gas = tasteri.gas && !ispit.kraj;
+  const kocnica = tasteri.kocnica || ispit.kraj;
+  let a = -FIZIKA.otpor - FIZIKA.vazduh * auto.v * auto.v;
+  if (gas) a += FIZIKA.gas * (1 - auto.v / FIZIKA.vMaks) + FIZIKA.otpor;
+  if (kocnica) a -= FIZIKA.kocnica;
+  if (auto.v <= 0 && a < 0) a = 0;
+  auto.v = Math.max(0, auto.v + a * dt);
+  auto.a += (a - auto.a) * Math.min(1, dt * 4);
+}
+
+function kretanje(dt) {
+  if (auto.skretanje) {
+    const k = auto.skretanje;
+    k.theta += auto.v * dt / k.R;
+    if (k.theta >= Math.PI / 2) {
+      const visak = (k.theta - Math.PI / 2) * k.R;
+      auto.skretanje = null;
+      auto.ul = 1; auto.s = B_SKR + visak; auto.d = auto.ciljD = 1.75;
+      zavrsiManevar();
+      zavrsiZadatak(6);
+    }
+    return;
+  }
+  auto.s += auto.v * dt;
+  const razlika = auto.ciljD - auto.d;
+  if (Math.abs(razlika) > 0.0005) {
+    const brzBocno = Math.min(2.4, auto.v * 0.9);
+    if (brzBocno > 0.05 && !ispit.manevar) zapocniManevar(razlika < 0 ? 'levo' : 'desno', 'prestrojavanje');
+    const korak = Math.sign(razlika) * Math.min(Math.abs(razlika), brzBocno * dt);
+    auto.d += korak;
+    auto.bocno = dt > 0 ? korak / dt : 0;
+    if (Math.abs(auto.ciljD - auto.d) < 0.0005) { auto.d = auto.ciljD; auto.bocno = 0; zavrsiManevar(); }
+  } else auto.bocno = 0;
+  if (auto.udarac > 0) auto.udarac = Math.max(0, auto.udarac - dt);
+  if (auto.ul === 0 && auto.s >= pocetakSkretanja(auto.d)) zapocniSkretanje();
+}
+
+function polozaj() {
+  if (auto.skretanje) {
+    const k = auto.skretanje;
+    auto.x = k.cx + k.R * Math.cos(k.theta);
+    auto.z = k.cz - k.R * Math.sin(k.theta);
+    auto.yaw = k.theta;
+    return;
+  }
+  const u = ULICE[auto.ul];
+  const d = auto.d + (auto.udarac > 0 ? 0.25 * Math.sin(Math.PI * auto.udarac / 0.5) : 0);
+  auto.x = u.O[0] + d * u.cos - auto.s * u.sin;
+  auto.z = u.O[1] - d * u.sin - auto.s * u.cos;
+  auto.yaw = u.psi - Math.atan2(auto.bocno, Math.max(auto.v, 3)) * 0.9;
+}
+
+// ---------------------------------------------------------------
+// Pravila
+// ---------------------------------------------------------------
+function ogranicenjeNa() { return auto.ul === 1 && auto.s >= S_SKOLA ? 30 : 50; }
+function izmedju(x, a, b) { return x >= a && x <= b; }
+
+// Mesta gde je jako kocenje ocekivano (zaustavljanje, raskrsnice, parkiranje)
+function ocekivanoKocenje() {
+  if (auto.skretanje || auto.ul === 1) return true;
+  const s = auto.s;
+  return s < 25 || izmedju(s, S_STOP - 80, S_STOP_RASKRSNICA + 10) || izmedju(s, S_PRELAZ - 70, S_PRELAZ + 11) ||
+    izmedju(s, S_SEMAFOR - 155, S_SEMAFOR_RASKRSNICA + 10) || izmedju(s, S_SKRETANJE - 60, S_SKRETANJE + 10);
+}
+// Mesta gde migavac najavljuje manevar koji tek sledi
+function ocekivanManevar(smer) {
+  if (smer === 'levo') return auto.ul === 0 && ((auto.s < 80 && auto.d > 3) || izmedju(auto.s, S_SEMAFOR_RASKRSNICA + 6, S_SKRETANJE + 5)) || !!auto.skretanje;
+  return auto.ul === 1 && izmedju(auto.s, PARKING_MESTO[0] - 110, PARKING_MESTO[1] + 5);
+}
+
+function pravila(dt) {
+  if (ispit.kraj) return;
+  if (ispit.pocetak === null && auto.v > 0.05) ispit.pocetak = vreme;
+  ispit.ivicnjakPauza = Math.max(0, ispit.ivicnjakPauza - dt);
+  if (ispit.porukaT > 0) ispit.porukaT -= dt;
+  const front = auto.s + AUTO_NAPRED;
+
+  // Brzina: do 10 km/h preko +1, 10 do 20 +3, vise od 20 obara
+  const lim = ogranicenjeNa();
+  const preko = Math.round(auto.v * 3.6) - lim;
+  if (preko > 20) return obori('Brzina veća od dozvoljene za više od 20 km/h');
+  const b = ispit.brzina;
+  const nivo = preko > 10 ? 2 : preko > 0 ? 1 : 0;
+  if (nivo > b.nivo) {
+    if (b.unos) izmeniKaznu(b.unos, 3, 'Prekoračenje brzine 10 do 20 km/h');
+    else b.unos = kazna(nivo === 2 ? 3 : 1, nivo === 2 ? 'Prekoračenje brzine 10 do 20 km/h' : 'Prekoračenje brzine do 10 km/h');
+    b.nivo = nivo; b.ispod = 0;
+  } else if (nivo === 0 && b.nivo > 0) {
+    b.ispod += dt;
+    if (b.ispod > 2) { b.nivo = 0; b.unos = null; }
+  }
+  if (ispit.kraj) return;
+
+  // Sudar sa parkiranim kolima
+  if (!auto.skretanje) {
+    const u = ULICE[auto.ul];
+    if (Math.abs(auto.d - PARKING_D) < 1.75) {
+      for (const p of u.parkirana) {
+        if (front > p - 2 && auto.s - AUTO_NAZAD < p + 2) { auto.v = 0; return obori('Udario si u parkirano vozilo'); }
+      }
+    }
+  }
+
+  if (auto.ul === 0 && !auto.skretanje) {
+    // STOP: potpuno zaustavljanje najmanje 1 s pre linije
+    const st = ispit.stop;
+    if (!st.gotovo) {
+      if (auto.v < 0.01 && front > S_STOP - 25 && front <= S_STOP + 0.3) {
+        st.stajanje += dt;
+        if (st.stajanje >= 1 && !st.ovajPut) { st.ovajPut = true; st.zaustavio = true; st.daleko = S_STOP - front > 3; }
+      } else { st.stajanje = 0; st.ovajPut = false; }
+      if (front > S_STOP + 0.3) {
+        st.gotovo = true;
+        if (!st.zaustavio) return obori('Nisi se potpuno zaustavio na STOP znaku');
+        if (st.daleko) kazna(1, 'Zaustavljanje predaleko od STOP linije');
+      }
+    }
+
+    // Semafor: zuto, crveno, pa zeleno kad auto saceka na crvenom
+    const se = ispit.semafor;
+    if (!se.gotovo) {
+      se.t += dt;
+      if (se.stanje === 'zeleno' && !se.promenjen && front > S_SEMAFOR - 145) { se.stanje = 'zuto'; se.t = 0; se.promenjen = true; }
+      else if (se.stanje === 'zuto' && se.t > 2) { se.stanje = 'crveno'; se.t = 0; }
+      else if (se.stanje === 'crveno') {
+        se.stajanje = auto.v < 0.01 ? se.stajanje + dt : 0;
+        if (se.stajanje > 2 && se.t > 3) { se.stanje = 'crvenoZuto'; se.t = 0; }
+      } else if (se.stanje === 'crvenoZuto' && se.t > 1) { se.stanje = 'zeleno'; se.t = 0; }
+      postaviSvetla(se.stanje);
+      if (front > S_SEMAFOR + 0.3) {
+        se.gotovo = true;
+        if (se.stanje === 'crveno' || se.stanje === 'crvenoZuto') return obori('Prošao si na crveno svetlo');
+      }
+    }
+  }
+
+  // Naglo kocenje bez razloga: jedno kocenje koje obori 25 km/h ili vise, sa 30 km/h ili vise
+  const k = ispit.kocenje;
+  if (tasteri.kocnica && !k.aktivno) { k.aktivno = true; k.v0 = auto.v; k.ocekivano = ocekivanoKocenje(); }
+  if (k.aktivno) {
+    if (ocekivanoKocenje()) k.ocekivano = true;
+    if (!tasteri.kocnica || auto.v === 0) {
+      if (!k.ocekivano && k.v0 >= 30 / 3.6 && k.v0 - auto.v >= 25 / 3.6) kazna(1, 'Naglo kočenje bez razloga');
+      k.aktivno = false;
+      k.v0 = 0;
+    }
+  }
+
+  // Migavac ostao ukljucen bez manevra duze od 3 s
+  if (migavac.smer && !ispit.manevar && auto.v > 1 && !ocekivanManevar(migavac.smer)) {
+    ispit.migavacBez += dt;
+    if (ispit.migavacBez > 3 && !ispit.migavacKaznjen) { ispit.migavacKaznjen = true; kazna(1, 'Migavac ostao uključen'); }
+  }
+
+  // Parkiranje na oznaceno mesto
+  if (auto.ul === 1 && !auto.skretanje) {
+    const [a, b2] = PARKING_MESTO;
+    const naMestu = Math.abs(auto.d - PARKING_D) < 0.01 && auto.s - AUTO_NAZAD >= a - 0.3 && front <= b2 + 0.3;
+    ispit.parkiranje = naMestu && auto.v < 0.01 ? ispit.parkiranje + dt : 0;
+    if (ispit.parkiranje > 1) { zavrsiZadatak(7); return zavrsi(true); }
+    if (auto.s - AUTO_NAZAD > b2 + 6) return obori('Nisi se parkirao na označeno mesto');
+  }
+
+  // Napredak zadataka po polozaju
+  const z = ispit.zadatak;
+  if (z === 0 && auto.ul === 0 && Math.abs(auto.d - 1.75) < 0.01) zavrsiZadatak(0);
+  if (z === 1 && auto.ul === 0 && auto.s >= S_STOP - 65) zavrsiZadatak(1);
+  if (z === 2 && ispit.stop.gotovo && front > S_STOP_RASKRSNICA + 4) zavrsiZadatak(2);
+  if (z === 3 && auto.s >= S_PRELAZ + 4) zavrsiZadatak(3);
+  if (z === 4 && ispit.semafor.gotovo && front > S_SEMAFOR_RASKRSNICA + 4) zavrsiZadatak(4);
+  if (z === 5 && auto.ul === 0 && Math.abs(auto.d + 1.75) < 0.01) zavrsiZadatak(5);
+}
+
+// Kratka poruka u zutoj piluli ispod retrovizora
+function porukaZaPrikaz() {
+  if (ispit.porukaT > 0) return ispit.poruka;
+  if (ispit.kraj) return '';
+  const kmh = Math.round(auto.v * 3.6), lim = ogranicenjeNa();
+  if (kmh > lim) return `Ograničenje je ${lim} km/h, uspori`;
+  const front = auto.s + AUTO_NAPRED;
+  if (auto.ul === 0 && !auto.skretanje) {
+    const st = ispit.stop, dStop = S_STOP - front;
+    if (!st.gotovo && dStop > -0.5 && dStop < 60) {
+      if (!st.zaustavio) return auto.v > 0.01 ? `STOP za ${Math.max(0, Math.round(dStop))} m, usporavaj` : 'Stani potpuno i sačekaj';
+      if (auto.v < 0.01) return 'Propusti vozila, pa kreni';
+    }
+    const se = ispit.semafor, dSem = S_SEMAFOR - front;
+    if (!se.gotovo && dSem > -0.5 && dSem < 90) {
+      if (se.stanje === 'crveno' || se.stanje === 'crvenoZuto') return 'Crveno svetlo, stani pre linije';
+      if (se.stanje === 'zuto') return 'Žuto svetlo, spremi se da staneš';
+    }
+    if (ispit.zadatak === 5 && auto.s > S_SKRETANJE - 80 && !uLevojTraci()) return 'Prestroj se u levu traku';
+    if (ispit.zadatak >= 5 && uLevojTraci() && auto.s > S_SKRETANJE - 45) return 'Skreni levo strelicom ←';
+  }
+  if (auto.ul === 1) {
+    const doMesta = PARKING_MESTO[0] - (auto.s - AUTO_NAZAD);
+    if (doMesta > 0 && doMesta < 70) return `Mesto za parkiranje za ${Math.round(doMesta)} m`;
+    if (doMesta <= 0 && auto.s - AUTO_NAZAD < PARKING_MESTO[1]) return 'Stani na žutom mestu';
+  }
+  return '';
+}
+
+// ---------------------------------------------------------------
+// Kraj voznje (privremeni ekran, pravi ekrani stizu u koraku 5)
+// ---------------------------------------------------------------
+const elKraj = document.getElementById('kraj');
+function prikaziKraj() {
+  const h = document.getElementById('krajNaslov');
+  h.textContent = ispit.polozio ? 'POLOŽIO' : 'NIJE POLOŽIO';
+  h.className = ispit.polozio ? 'polozio' : 'pao';
+  document.getElementById('krajPoeni').textContent = `${ispit.poeni} / ${MAKS_POENA}`;
+  const sek = Math.round(ispit.trajanje);
+  document.getElementById('krajVreme').textContent = `${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, '0')}`;
+  const ul = document.getElementById('krajGreske');
+  ul.textContent = '';
+  if (!ispit.greske.length) {
+    const li = document.createElement('li'); li.textContent = 'Bez grešaka. Bravo!'; ul.appendChild(li);
+  }
+  for (const g of ispit.greske) {
+    const li = document.createElement('li');
+    const levo = document.createElement('span'); levo.textContent = `Zadatak ${g.zadatak}: ${g.tekst}`;
+    const desno = document.createElement('b'); desno.textContent = g.obara ? 'pad' : `+${g.poeni}`;
+    if (g.obara) desno.className = 'obara';
+    li.append(levo, desno);
+    ul.appendChild(li);
+  }
+  elKraj.classList.add('vidljiv');
+  document.getElementById('voziPonovo').focus();
+}
+document.getElementById('voziPonovo').addEventListener('click', novaVoznja);
+
+function novaVoznja() {
+  noviIspit();
+  Object.assign(auto, { ul: 0, s: 0, d: PARKING_D, ciljD: PARKING_D, v: 0, a: 0, bocno: 0, skretanje: null, udarac: 0 });
+  if (migavac.smer) prebaciMigavac(migavac.smer);
+  pustiSve();
+  postaviSvetla('zeleno');
+  prikaziZadatak();
+  prikaziPoene(null);
+  elKraj.classList.remove('vidljiv');
+  platno.focus();
+}
+
+// ---------------------------------------------------------------
+// HUD
 // ---------------------------------------------------------------
 const elBrzina = document.getElementById('brzina');
 const elLuk = document.getElementById('lukBrzine');
@@ -532,26 +1226,25 @@ const elBrzinomer = document.getElementById('brzinomer');
 const elOgranicenje = document.getElementById('ogranicenje');
 const elUpozorenje = document.getElementById('upozorenje');
 const LUK_PUN = 395.8, LUK_OBIM = 527.8, BRZINOMER_MAKS = 140;
-let vreme = 0, prikazanaBrzina = -1, migavacSvetli = false;
-let ogranicenje = 50;          // km/h, staza ce ga menjati po zonama
-
-function pokaziUpozorenje(tekst) {
-  if (tekst) elUpozorenje.textContent = tekst;
-  elUpozorenje.classList.toggle('vidljivo', !!tekst);
-}
+let vreme = 0, prikazanaBrzina = -1, prikazanoOgr = -1, prikazanaPoruka = null, migavacSvetli = false;
 
 function azurirajHud(dt) {
-  const kmh = Math.round(auto.v * 3.6);
-  if (kmh !== prikazanaBrzina) {
-    prikazanaBrzina = kmh;
+  const kmh = Math.round(auto.v * 3.6), lim = ogranicenjeNa();
+  if (kmh !== prikazanaBrzina || lim !== prikazanoOgr) {
+    prikazanaBrzina = kmh; prikazanoOgr = lim;
     elBrzina.textContent = kmh;
     const deo = Math.min(1, kmh / BRZINOMER_MAKS) * LUK_PUN;
     elLuk.setAttribute('stroke-dasharray', deo + ' ' + LUK_OBIM);
-    const preko = kmh > ogranicenje;
+    const preko = kmh > lim;
     elLuk.setAttribute('stroke', preko ? '#C8102E' : '#F4C20D');
     elBrzinomer.classList.toggle('preko', preko);
-    elOgranicenje.textContent = ogranicenje;
-    pokaziUpozorenje(preko ? 'Ograničenje je ' + ogranicenje + ' km/h, uspori' : '');
+    elOgranicenje.textContent = lim;
+  }
+  const poruka = porukaZaPrikaz();
+  if (poruka !== prikazanaPoruka) {
+    prikazanaPoruka = poruka;
+    if (poruka) elUpozorenje.textContent = poruka;
+    elUpozorenje.classList.toggle('vidljivo', !!poruka);
   }
   // treptanje migavca
   migavac.t += dt;
@@ -561,28 +1254,42 @@ function azurirajHud(dt) {
     elMigLevo.classList.toggle('svetli', svetli && migavac.smer === 'levo');
     elMigDesno.classList.toggle('svetli', svetli && migavac.smer === 'desno');
   }
+  if (ispit.kraj && !elKraj.classList.contains('vidljiv')) {
+    ispit.krajT += dt;
+    if (ispit.krajT > 1.5) prikaziKraj();
+  }
 }
 
+// ---------------------------------------------------------------
+// Petlja
+// ---------------------------------------------------------------
 function azurirajSvet() {
-  // segmenti koji ostanu iza auta selimo napred
-  const ukupno = PUT.segment * PUT.brojSegmenata;
-  for (const m of segmenti) {
-    if (m.position.z - PUT.segment > auto.z + PUT.iza * PUT.segment) m.position.z -= ukupno;
-  }
-  asfalt.position.z = auto.z - 400;
-  zemlja.position.z = auto.z;
+  for (const p of DELOVI) p.m.visible = Math.hypot(p.c.x - auto.x, p.c.z - auto.z) < 430 + p.r;
   brda.position.set(auto.x, 0, auto.z);
 }
+
+kamera.rotation.order = 'YXZ';
+zadnjaKamera.rotation.order = 'YXZ';
+const volanObj = kokpit.userData.volan;
 
 function azurirajKameru(dt) {
   const ljuljanje = smanjenoKretanje ? 0 : 1;
   const brzinaF = Math.min(1, auto.v / 14);
   const tresenje = Math.sin(vreme * 9) * 0.004 * brzinaF * ljuljanje;
-  kamera.position.set(auto.x + VOZAC_X, VISINA_OKA + tresenje, auto.z);
+  const c = Math.cos(auto.yaw), sn = Math.sin(auto.yaw);
+  kamera.position.set(auto.x + VOZAC_X * c, VISINA_OKA + tresenje, auto.z - VOZAC_X * sn);
   // blago naginjanje pri kocenju i ubrzanju
   const nagib = THREE.MathUtils.clamp(-auto.a * 0.006, -0.03, 0.04) * ljuljanje;
-  kamera.rotation.set(-0.05 + nagib, 0, 0);
-  zadnjaKamera.position.set(auto.x, 1.3, auto.z + 0.6);
+  kamera.rotation.set(-0.05 + nagib, auto.yaw, 0);
+  zadnjaKamera.position.set(auto.x + sn * 0.6, 1.3, auto.z + c * 0.6);
+  zadnjaKamera.rotation.set(-0.07, auto.yaw + Math.PI, 0);
+  // volan prati manevar
+  let cilj = 0;
+  if (auto.skretanje) cilj = 2.4;
+  else if (auto.bocno) cilj = -Math.sign(auto.bocno) * 0.7;
+  else if (tasteri.levo) cilj = 0.25;
+  else if (tasteri.desno) cilj = -0.25;
+  volanObj.rotation.z += (cilj - volanObj.rotation.z) * Math.min(1, dt * 6);
 }
 
 function promenaVelicine() {
@@ -599,12 +1306,22 @@ function promenaVelicine() {
 addEventListener('resize', promenaVelicine);
 promenaVelicine();
 
+function korakLogike(dt) {
+  vreme += dt;
+  fizika(dt);
+  kretanje(dt);
+  pravila(dt);
+}
+
+noviIspit();
+prikaziZadatak();
+
 let prosli = performance.now();
 function petlja(sad) {
   const dt = Math.min(0.05, (sad - prosli) / 1000);
   prosli = sad;
-  vreme += dt;
-  fizika(dt);
+  korakLogike(dt);
+  polozaj();
   azurirajSvet();
   azurirajKameru(dt);
   azurirajHud(dt);
@@ -619,8 +1336,13 @@ function petlja(sad) {
 }
 requestAnimationFrame(petlja);
 
-// za testiranje iz konzole
-window.VIP = { auto, tasteri, migavac, prebaciMigavac, ugasiMigavac };
+// Za testiranje iz konzole: VIP.simuliraj(sekundi) vrti logiku bez crtanja
+window.VIP = {
+  auto, tasteri, migavac, prebaciMigavac, volan, novaVoznja, get ispit() { return ispit; },
+  staza: { S_STOP, S_PRELAZ, S_SEMAFOR, S_SKRETANJE, PARKING_MESTO },
+  info: () => ({ ...renderer.info.render, delova: DELOVI.length, temena: DELOVI.reduce((n, p) => n + p.m.geometry.attributes.position.count, 0) }),
+  simuliraj(sekundi, korak = 1 / 60) { for (let t = 0; t < sekundi; t += korak) { korakLogike(korak); azurirajHud(korak); } polozaj(); }
+};
 </script>
 </body>
 </html>

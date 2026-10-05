@@ -10,15 +10,19 @@ Igra je jedan samostalan fajl, `index.html`. Za probu ga otvori direktno u pregl
 
 ## Kontrole (trenutno)
 
-- `↑` gas
-- `↓` kočnica
-- `Q` levi migavac, `E` desni migavac (ponovni pritisak gasi)
+- `↑` gas, `↓` kočnica
+- `←` `→` volan: prestrojavanje u susednu traku, a na raskrsnici skretanje
+- `Q` levi migavac, `E` desni migavac (ponovni pritisak gasi, sam se gasi posle manevra)
+
+## Staza 1
+
+Glavna ulica sa parkingom, raskrsnica sa znakom STOP, pešački prelaz, semafor, deonica sa dve trake, skretanje levo i školska ulica sa označenim mestom za parkiranje. Savršena vožnja traje oko 3 minuta.
 
 ## Stanje razvoja
 
 - [x] Korak 1: scena, kamera iz kola, hauba, volan, vožnja pravo
 - [x] Korak 2: HUD (brzinomer, migavci, retrovizor)
-- [ ] Korak 3: Staza 1 sa 8 zadataka i pravilima
+- [x] Korak 3: Staza 1 sa 8 zadataka i pravilima
 - [ ] Korak 4: ostali učesnici u saobraćaju
 - [ ] Korak 5: ekrani (početni, pauza, rezultat)
 - [ ] Korak 6: kontrole za telefon

@@ -20,12 +20,38 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--asfalt);font-fam
 #igra{position:fixed;inset:0;display:block;width:100%;height:100%;outline:none}
 .hud{position:fixed;font-family:Overpass,system-ui,sans-serif;pointer-events:none}
 .kartica{background:rgba(21,23,28,.82);border-radius:14px;padding:12px 18px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
-/* privremeni prikaz za korak 1, u koraku 2 ga menja pravi HUD */
-#privremeno{left:24px;top:22px}
-#privremeno .nat{font-size:12px;letter-spacing:.14em;color:var(--zuta);font-weight:800}
-#privremeno .brz{font-size:40px;font-weight:900;line-height:1.05;margin-top:2px}
-#privremeno .brz small{font-size:16px;color:#c9ccd3;font-weight:800;letter-spacing:.08em}
-#privremeno .uput{font-family:Figtree,system-ui,sans-serif;font-size:14px;color:#c9ccd3;margin-top:4px}
+/* HUD se skalira prema velicini ekrana (osnova 1280x720), --s postavlja JS */
+:root{--s:1}
+#zadatak{left:24px;top:22px;width:330px;transform:scale(var(--s));transform-origin:top left}
+#zadatak .nat{font-size:12px;letter-spacing:.14em;color:var(--zuta);font-weight:800}
+#zadatak .naslov{font-size:22px;font-weight:800;margin-top:4px;line-height:1.15}
+#zadatak .opis{font-family:Figtree,system-ui,sans-serif;font-size:15px;color:#c9ccd3;margin-top:6px;line-height:1.35}
+#poeni{right:24px;top:22px;text-align:right;transform:scale(var(--s));transform-origin:top right}
+#poeni .nat{font-size:12px;letter-spacing:.14em;color:#c9ccd3;font-weight:800}
+#poeni .broj{font-size:40px;font-weight:900;line-height:1.05}
+#poeni .broj span{font-size:18px;color:#c9ccd3}
+#poeni .poslednja{font-family:Figtree,system-ui,sans-serif;font-size:13px;color:#e8a33b;min-height:1em}
+#retrovizor{left:50%;top:18px;width:200px;height:56px;border:7px solid var(--asfalt);border-width:7px 8px;border-radius:16px;transform:translateX(-50%) scale(var(--s));transform-origin:top center;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+#retrovizor .staklo{position:absolute;inset:0;border-radius:10px}
+#upozorenje{left:50%;top:150px;transform:translateX(-50%) scale(var(--s));transform-origin:top center;background:var(--zuta);color:var(--asfalt);border-radius:999px;padding:10px 22px;font-weight:800;font-size:18px;box-shadow:0 8px 24px rgba(0,0,0,.25);white-space:nowrap;opacity:0;transition:opacity .2s}
+#upozorenje.vidljivo{opacity:1}
+#brzinomer{right:70px;bottom:28px;width:190px;height:190px;border-radius:50%;background:var(--asfalt);border:5px solid #2b2e34;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:scale(var(--s));transform-origin:bottom right}
+#brzinomer svg{position:absolute;inset:-5px;width:190px;height:190px}
+#brzinomer .broj{font-size:64px;font-weight:900;line-height:1;margin-top:10px;font-variant-numeric:tabular-nums}
+#brzinomer .jed{font-size:14px;color:#c9ccd3;letter-spacing:.1em}
+#brzinomer .ogr{margin-top:8px;font-size:13px;font-weight:800;background:var(--crvena);border-radius:999px;padding:3px 10px 1px}
+#brzinomer.preko .ogr{animation:puls .5s ease-in-out infinite alternate}
+@keyframes puls{to{transform:scale(1.15)}}
+#migavci{left:50%;bottom:40px;transform:translateX(-50%) scale(var(--s));transform-origin:bottom center;display:flex;gap:16px;align-items:center}
+.migavac{pointer-events:auto;width:58px;height:58px;border-radius:12px;border:0;background:var(--asfalt);display:flex;align-items:center;justify-content:center;font-size:30px;color:#3a3d44;cursor:pointer;padding:0;font-family:inherit;transition:color .08s,box-shadow .08s}
+.migavac.ukljucen{color:#6b5a1a}
+.migavac.svetli{color:var(--zuta);box-shadow:0 0 22px rgba(244,194,13,.6)}
+#migavci .podsetnik{background:var(--asfalt);border-radius:12px;padding:10px 16px;font-size:13px;color:#c9ccd3;font-family:Figtree,system-ui,sans-serif;white-space:nowrap}
+#bedz{left:24px;bottom:24px;display:flex;align-items:center;gap:10px;transform:scale(var(--s));transform-origin:bottom left}
+.oznakaL{width:44px;height:44px;background:var(--plava);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:30px;color:var(--bela);padding-top:4px}
+#bedz .ime{font-weight:900;font-size:20px;line-height:1}
+#bedz .sajt{font-size:12px;color:#c9ccd3;letter-spacing:.12em;line-height:1;margin-top:4px}
+@media (prefers-reduced-motion: reduce){#brzinomer.preko .ogr{animation:none}}
 #greska{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:24px;text-align:center;background:var(--asfalt);font-size:18px;line-height:1.5}
 </style>
 <script type="importmap">
@@ -35,10 +61,41 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--asfalt);font-fam
 <body>
 <canvas id="igra" tabindex="0" aria-label="VOZI I POLOŽI, pogled iz kola"></canvas>
 
-<div id="privremeno" class="hud kartica">
-  <div class="nat">BRZINA</div>
-  <div class="brz"><span id="brzina">0</span> <small>KM/H</small></div>
-  <div class="uput">↑ gas, ↓ kočnica</div>
+<div id="zadatak" class="hud kartica">
+  <div class="nat">PROBNA VOŽNJA</div>
+  <div class="naslov">Upoznaj kola</div>
+  <div class="opis">Isprobaj gas, kočnicu i migavce.</div>
+</div>
+
+<div id="retrovizor" class="hud"><div class="staklo"></div></div>
+
+<div id="poeni" class="hud kartica">
+  <div class="nat">KAZNENI POENI</div>
+  <div class="broj"><b id="brojPoena">0</b> <span>/ 10</span></div>
+  <div class="poslednja" id="poslednjaGreska"></div>
+</div>
+
+<div id="upozorenje" class="hud" role="status" aria-live="polite"></div>
+
+<div id="brzinomer" class="hud" aria-label="Brzinomer">
+  <svg viewBox="0 0 190 190" aria-hidden="true">
+    <circle cx="95" cy="95" r="84" fill="none" stroke="#2b2e34" stroke-width="6" stroke-linecap="round" stroke-dasharray="395.8 527.8" transform="rotate(135 95 95)"/>
+    <circle id="lukBrzine" cx="95" cy="95" r="84" fill="none" stroke="#F4C20D" stroke-width="6" stroke-linecap="round" stroke-dasharray="0 527.8" transform="rotate(135 95 95)"/>
+  </svg>
+  <div class="broj" id="brzina">0</div>
+  <div class="jed">KM/H</div>
+  <div class="ogr">ograničenje <span id="ogranicenje">50</span></div>
+</div>
+
+<div id="migavci" class="hud">
+  <button class="migavac" id="migLevo" type="button" aria-label="Levi migavac" aria-pressed="false">◀</button>
+  <div class="podsetnik">Q / E migavci &nbsp;·&nbsp; ↑ ↓ gas i kočnica</div>
+  <button class="migavac" id="migDesno" type="button" aria-label="Desni migavac" aria-pressed="false">▶</button>
+</div>
+
+<div id="bedz" class="hud kartica">
+  <div class="oznakaL">L</div>
+  <div><div class="ime">VOZI I POLOŽI</div><div class="sajt">AUTOSKOLEBEOGRAD.COM</div></div>
 </div>
 
 <div id="greska">Igra ne može da se pokrene. Proveri internet vezu i da li pregledač podržava WebGL.</div>
@@ -63,7 +120,8 @@ const PUT = {
   trotoar: 4,              // sirina trotoara (m)
   ivicnjak: 0.15,          // visina ivicnjaka (m)
   segment: 40,             // duzina jednog segmenta ulice (m)
-  brojSegmenata: 12
+  brojSegmenata: 14,
+  iza: 3                   // segmenata iza auta (vide se u retrovizoru)
 };
 PUT.polaKolovoza = PUT.traka;                    // dve trake, po jedna u svakom smeru
 PUT.fasada = PUT.polaKolovoza + PUT.trotoar;     // gde pocinju zgrade
@@ -265,7 +323,7 @@ function drvo(s, r, x, z, vel) {
 const segmenti = [];
 for (let i = 0; i < PUT.brojSegmenata; i++) {
   const m = napraviSegment(1000 + i * 17);
-  m.position.z = -i * PUT.segment + PUT.segment;   // jedan segment iza auta
+  m.position.z = (PUT.iza - i) * PUT.segment;
   scena.add(m);
   segmenti.push(m);
 }
@@ -327,6 +385,38 @@ const matKokpit = new THREE.MeshLambertMaterial({ vertexColors: true, flatShadin
 }
 
 // ---------------------------------------------------------------
+// Retrovizor: zadnja kamera crta u malu teksturu, ona se prikazuje
+// preslikana (kao u ogledalu) u okviru retrovizora iz HUD-a
+// ---------------------------------------------------------------
+const zadnjaKamera = new THREE.PerspectiveCamera(18, 4.4, 0.5, 260);
+zadnjaKamera.rotation.set(0.07, Math.PI, 0);   // X pozitivno = pogled blago nadole
+scena.add(zadnjaKamera);
+
+const ogledalo = new THREE.WebGLRenderTarget(256, 64);
+const hudScena = new THREE.Scene();
+const hudKamera = new THREE.OrthographicCamera(0, 1, 1, 0, -1, 1);
+const staklo = (() => {
+  const g = new THREE.PlaneGeometry(1, 1);
+  const uv = g.attributes.uv;
+  for (let i = 0; i < uv.count; i++) uv.setX(i, 1 - uv.getX(i));   // preslikavanje levo desno
+  const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: ogledalo.texture, depthTest: false, depthWrite: false }));
+  hudScena.add(m);
+  return m;
+})();
+const elStaklo = document.querySelector('#retrovizor .staklo');
+
+function postaviRetrovizor(w, h) {
+  const r = elStaklo.getBoundingClientRect();
+  staklo.scale.set(r.width, r.height, 1);
+  staklo.position.set(r.left + r.width / 2, h - r.top - r.height / 2, 0);
+  hudKamera.right = w; hudKamera.top = h; hudKamera.updateProjectionMatrix();
+  const dpr = renderer.getPixelRatio();
+  ogledalo.setSize(Math.max(64, Math.round(r.width * dpr * 0.75)), Math.max(16, Math.round(r.height * dpr * 0.75)));
+  zadnjaKamera.aspect = r.width / r.height;
+  zadnjaKamera.updateProjectionMatrix();
+}
+
+// ---------------------------------------------------------------
 // Stanje auta i kontrole
 // ---------------------------------------------------------------
 const auto = {
@@ -340,9 +430,30 @@ const tasteri = { gas: false, kocnica: false };
 const MAPA = { ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'kocnica', KeyS: 'kocnica' };
 const STRELICE = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space']);
 
+// Migavci: Q levi, E desni, ponovni pritisak gasi. Treptanje oko 1,5 Hz.
+// Sam se gasi posle zavrsenog manevra: staza poziva ugasiMigavac().
+const migavac = { smer: null, t: 0 };
+const PERIOD_MIGAVCA = 0.667;
+const elMigLevo = document.getElementById('migLevo');
+const elMigDesno = document.getElementById('migDesno');
+
+function prebaciMigavac(smer) {
+  migavac.smer = migavac.smer === smer ? null : smer;
+  migavac.t = 0;
+  elMigLevo.classList.toggle('ukljucen', migavac.smer === 'levo');
+  elMigDesno.classList.toggle('ukljucen', migavac.smer === 'desno');
+  elMigLevo.setAttribute('aria-pressed', migavac.smer === 'levo');
+  elMigDesno.setAttribute('aria-pressed', migavac.smer === 'desno');
+}
+function ugasiMigavac() { if (migavac.smer) prebaciMigavac(migavac.smer); }
+elMigLevo.addEventListener('click', () => prebaciMigavac('levo'));
+elMigDesno.addEventListener('click', () => prebaciMigavac('desno'));
+
 addEventListener('keydown', e => {
   if (STRELICE.has(e.code)) e.preventDefault();
   const t = MAPA[e.code]; if (t) tasteri[t] = true;
+  if (!e.repeat && e.code === 'KeyQ') prebaciMigavac('levo');
+  if (!e.repeat && e.code === 'KeyE') prebaciMigavac('desno');
 });
 addEventListener('keyup', e => {
   const t = MAPA[e.code]; if (t) tasteri[t] = false;
@@ -365,13 +476,47 @@ function fizika(dt) {
 // Petlja
 // ---------------------------------------------------------------
 const elBrzina = document.getElementById('brzina');
-let vreme = 0, prikazanaBrzina = -1;
+const elLuk = document.getElementById('lukBrzine');
+const elBrzinomer = document.getElementById('brzinomer');
+const elOgranicenje = document.getElementById('ogranicenje');
+const elUpozorenje = document.getElementById('upozorenje');
+const LUK_PUN = 395.8, LUK_OBIM = 527.8, BRZINOMER_MAKS = 140;
+let vreme = 0, prikazanaBrzina = -1, migavacSvetli = false;
+let ogranicenje = 50;          // km/h, staza ce ga menjati po zonama
+
+function pokaziUpozorenje(tekst) {
+  if (tekst) elUpozorenje.textContent = tekst;
+  elUpozorenje.classList.toggle('vidljivo', !!tekst);
+}
+
+function azurirajHud(dt) {
+  const kmh = Math.round(auto.v * 3.6);
+  if (kmh !== prikazanaBrzina) {
+    prikazanaBrzina = kmh;
+    elBrzina.textContent = kmh;
+    const deo = Math.min(1, kmh / BRZINOMER_MAKS) * LUK_PUN;
+    elLuk.setAttribute('stroke-dasharray', deo + ' ' + LUK_OBIM);
+    const preko = kmh > ogranicenje;
+    elLuk.setAttribute('stroke', preko ? '#C8102E' : '#F4C20D');
+    elBrzinomer.classList.toggle('preko', preko);
+    elOgranicenje.textContent = ogranicenje;
+    pokaziUpozorenje(preko ? 'Ograničenje je ' + ogranicenje + ' km/h, uspori' : '');
+  }
+  // treptanje migavca
+  migavac.t += dt;
+  const svetli = !!migavac.smer && (migavac.t % PERIOD_MIGAVCA) < PERIOD_MIGAVCA * 0.55;
+  if (svetli !== migavacSvetli) {
+    migavacSvetli = svetli;
+    elMigLevo.classList.toggle('svetli', svetli && migavac.smer === 'levo');
+    elMigDesno.classList.toggle('svetli', svetli && migavac.smer === 'desno');
+  }
+}
 
 function azurirajSvet() {
   // segmenti koji ostanu iza auta selimo napred
   const ukupno = PUT.segment * PUT.brojSegmenata;
   for (const m of segmenti) {
-    if (m.position.z - PUT.segment > auto.z + PUT.segment) m.position.z -= ukupno;
+    if (m.position.z - PUT.segment > auto.z + PUT.iza * PUT.segment) m.position.z -= ukupno;
   }
   asfalt.position.z = auto.z - 400;
   zemlja.position.z = auto.z;
@@ -386,6 +531,7 @@ function azurirajKameru(dt) {
   // blago naginjanje pri kocenju i ubrzanju
   const nagib = THREE.MathUtils.clamp(-auto.a * 0.006, -0.03, 0.04) * ljuljanje;
   kamera.rotation.set(-0.05 + nagib, 0, 0);
+  zadnjaKamera.position.set(auto.x, 1.3, auto.z + 0.6);
 }
 
 function promenaVelicine() {
@@ -395,6 +541,9 @@ function promenaVelicine() {
   // na uzim ekranima siri ugao da se vidi put
   kamera.fov = kamera.aspect < 1.3 ? 75 : 60;
   kamera.updateProjectionMatrix();
+  const skala = Math.max(0.5, Math.min(1.25, w / 1280, h / 720));
+  document.documentElement.style.setProperty('--s', skala.toFixed(3));
+  postaviRetrovizor(w, h);
 }
 addEventListener('resize', promenaVelicine);
 promenaVelicine();
@@ -407,15 +556,20 @@ function petlja(sad) {
   fizika(dt);
   azurirajSvet();
   azurirajKameru(dt);
-  const kmh = Math.round(auto.v * 3.6);
-  if (kmh !== prikazanaBrzina) { elBrzina.textContent = kmh; prikazanaBrzina = kmh; }
+  azurirajHud(dt);
+  renderer.setRenderTarget(ogledalo);
+  renderer.render(scena, zadnjaKamera);
+  renderer.setRenderTarget(null);
   renderer.render(scena, kamera);
+  renderer.autoClear = false;
+  renderer.render(hudScena, hudKamera);
+  renderer.autoClear = true;
   requestAnimationFrame(petlja);
 }
 requestAnimationFrame(petlja);
 
 // za testiranje iz konzole
-window.VIP = { auto, tasteri };
+window.VIP = { auto, tasteri, migavac, prebaciMigavac, ugasiMigavac };
 </script>
 </body>
 </html>

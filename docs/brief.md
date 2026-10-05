@@ -86,7 +86,7 @@ Pratiti Prilog A. Elementi:
 ## 5. Kontrole
 
 ### Tastatura
-- `↑` gas, `↓` kočnica (držanjem do nule), `←` `→` volan.
+- `↑` gas, `↓` kočnica (držanjem do nule), `←` `→` volan (koliko dugo se drži, toliko skreće).
 - `Q` levi migavac, `E` desni migavac (toggle; gasi se sam posle završenog skretanja ili prestrojavanja, kao pravi).
 - `Space` ručna kočnica (opciono), `P` ili `Esc` pauza.
 
@@ -96,10 +96,14 @@ Pratiti Prilog A. Elementi:
 - Landscape preporučen; u portretu prikazati poruku "Okreni telefon".
 
 ### Vožnja (fizika)
-- Pojednostavljena, arkadna. Auto ide po putu, ne može da izađe van kolovoza više od ivice trotoara (blago odbijanje i kazneni poeni).
-- Ubrzanje realno za mali auto: 0 do 50 km/h za oko 6 sekundi. Kočenje jasno osetno.
-- Skretanje na raskrsnicama: kad igrač na raskrsnici drži levo ili desno, auto prati unapred definisanu krivu skretanja (spline). Ne treba slobodna vožnja po celom gradu.
-- Prestrojavanje: na putu sa dve trake, levo i desno pomera auto između traka.
+*Izmenjeno posle testiranja koraka 3 (Goran): pravi volan umesto skakanja po trakama.*
+
+- Pojednostavljena, arkadna. Ubrzanje realno za mali auto: 0 do 50 km/h za oko 6 sekundi. Kočenje jasno osetno.
+- **Pravi volan:** koliko dugo igrač drži levo ili desno, toliko se volan okreće i auto skreće. Kad pusti, volan se postepeno vraća na pravo. Jačina skretanja zavisi od brzine: na mestu auto ne skreće, pri većoj brzini skreće blaže.
+- **Nema skakanja po trakama ni automatske krive na raskrsnici.** Igrač sam vozi i u traci i kroz skretanje.
+- **Pravila se proveravaju po stvarnom položaju auta:** prestrojavanje znači da je auto prešao liniju između traka, a skretanje da je ušao u poprečnu ulicu. Izlazak u suprotnu traku ili na trotoar donosi kaznene poene. Auto ne može na trotoar: blago se odbije nazad na kolovoz.
+- **Blaga pomoć na raskrsnici:** ako je igrač u dobroj traci i skreće, auto lakše prati luk skretanja, ali ga ne vodi sam.
+- Držanje tastera ne sme da zamrzne ni zablokira igru, bez obzira na to kako sistem ponavlja taster.
 
 ---
 

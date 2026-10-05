@@ -11,7 +11,7 @@ Igra je jedan samostalan fajl, `index.html`. Za probu ga otvori direktno u pregl
 ## Kontrole (trenutno)
 
 - `↑` gas, `↓` kočnica
-- `←` `→` volan: prestrojavanje u susednu traku, a na raskrsnici skretanje
+- `←` `→` volan: koliko dugo držiš, toliko skrećeš; pušten volan se sam vraća na pravo
 - `Q` levi migavac, `E` desni migavac (ponovni pritisak gasi, sam se gasi posle manevra)
 
 ## Staza 1

@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>VOZI I POLOŽI</title>
+<meta name="description" content="Proveri da li bi položio vožnju u Beogradu. Igra autoskolebeograd.com">
+<meta name="theme-color" content="#15171C">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@800;900&family=Figtree:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --asfalt:#15171C; --zuta:#F4C20D; --tekst:#3A3F49; --zelena:#15703F;
+  --krem:#F5F3EC; --siva:#545966; --linija:#E2DED3; --bela:#FFFFFF;
+  --plava:#2846A0; --crvena:#C8102E;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--asfalt);font-family:Figtree,system-ui,sans-serif;color:var(--bela);-webkit-user-select:none;user-select:none;touch-action:none}
+#igra{position:fixed;inset:0;display:block;width:100%;height:100%;outline:none}
+.hud{position:fixed;font-family:Overpass,system-ui,sans-serif;pointer-events:none}
+.kartica{background:rgba(21,23,28,.82);border-radius:14px;padding:12px 18px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+/* privremeni prikaz za korak 1, u koraku 2 ga menja pravi HUD */
+#privremeno{left:24px;top:22px}
+#privremeno .nat{font-size:12px;letter-spacing:.14em;color:var(--zuta);font-weight:800}
+#privremeno .brz{font-size:40px;font-weight:900;line-height:1.05;margin-top:2px}
+#privremeno .brz small{font-size:16px;color:#c9ccd3;font-weight:800;letter-spacing:.08em}
+#privremeno .uput{font-family:Figtree,system-ui,sans-serif;font-size:14px;color:#c9ccd3;margin-top:4px}
+#greska{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:24px;text-align:center;background:var(--asfalt);font-size:18px;line-height:1.5}
+</style>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js" } }
+</script>
+</head>
+<body>
+<canvas id="igra" tabindex="0" aria-label="VOZI I POLOŽI, pogled iz kola"></canvas>
+
+<div id="privremeno" class="hud kartica">
+  <div class="nat">BRZINA</div>
+  <div class="brz"><span id="brzina">0</span> <small>KM/H</small></div>
+  <div class="uput">↑ gas, ↓ kočnica</div>
+</div>
+
+<div id="greska">Igra ne može da se pokrene. Proveri internet vezu i da li pregledač podržava WebGL.</div>
+
+<script type="module">
+import * as THREE from 'three';
+
+// ---------------------------------------------------------------
+// Podešavanja
+// ---------------------------------------------------------------
+const BOJE = {
+  asfalt: 0x3e4148, linija: 0xf4f1e6, trotoar: 0xcfcac0, ivicnjak: 0xb5b0a5,
+  trava: 0x8fbf7a, prozor: 0x7fa7c2, okvir: 0xf5f3ec, krosnja: 0x4f9a5a,
+  krosnja2: 0x5fae63, stablo: 0x7a5a3a, brdo: 0xb9d3c0, brdo2: 0xa7c6af,
+  hauba: 0xf2efe6, tabla: 0x1b1d22, stub: 0x15171c, volan: 0x24272d,
+  nebo: '#9fd0ee', horizont: '#e8f2ea'
+};
+const FASADE = [0xe9dcc3, 0xd9c7a6, 0xefe6d3, 0xead9b8, 0xe4d2b0, 0xefe3cb, 0xdccfb6, 0xf0e2c8];
+
+const PUT = {
+  traka: 3.5,              // sirina jedne trake (m)
+  trotoar: 4,              // sirina trotoara (m)
+  ivicnjak: 0.15,          // visina ivicnjaka (m)
+  segment: 40,             // duzina jednog segmenta ulice (m)
+  brojSegmenata: 12
+};
+PUT.polaKolovoza = PUT.traka;                    // dve trake, po jedna u svakom smeru
+PUT.fasada = PUT.polaKolovoza + PUT.trotoar;     // gde pocinju zgrade
+
+// Fizika: mali auto, 0 do 50 km/h za oko 6 s
+const FIZIKA = {
+  gas: 3.0,          // m/s2 pri malim brzinama
+  vMaks: 33,         // m/s, teorijski maksimum (oko 120 km/h)
+  kocnica: 7.0,      // m/s2
+  otpor: 0.35,       // m/s2 kotrljanje kad nema gasa
+  vazduh: 0.0009     // otpor vazduha (v^2)
+};
+
+const smanjenoKretanje = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------------------------------------------------------------
+// Pomocne funkcije
+// ---------------------------------------------------------------
+function rng(seme) {           // mulberry32, isti grad svaki put
+  return function () {
+    seme |= 0; seme = (seme + 0x6D2B79F5) | 0;
+    let t = Math.imul(seme ^ (seme >>> 15), 1 | seme);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Skuplja mnogo malih geometrija u jednu (jedan draw call po segmentu)
+class Spajac {
+  constructor() { this.poz = []; this.nor = []; this.boj = []; this.c = new THREE.Color(); }
+  dodaj(geo, boja, x = 0, y = 0, z = 0, rotY = 0) {
+    let g = geo.index ? geo.toNonIndexed() : geo.clone();
+    if (rotY) g.rotateY(rotY);
+    g.translate(x, y, z);
+    const p = g.attributes.position.array, n = g.attributes.normal.array;
+    this.c.set(boja);
+    for (let i = 0; i < p.length; i += 3) {
+      this.poz.push(p[i], p[i + 1], p[i + 2]);
+      this.nor.push(n[i], n[i + 1], n[i + 2]);
+      this.boj.push(this.c.r, this.c.g, this.c.b);
+    }
+    g.dispose();
+  }
+  kutija(w, h, d, boja, x, y, z, rotY = 0) {
+    this.dodaj(new THREE.BoxGeometry(w, h, d), boja, x, y + h / 2, z, rotY);
+  }
+  napravi(materijal) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(this.poz, 3));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(this.nor, 3));
+    g.setAttribute('color', new THREE.Float32BufferAttribute(this.boj, 3));
+    g.computeBoundingSphere();
+    return new THREE.Mesh(g, materijal);
+  }
+}
+
+// ---------------------------------------------------------------
+// Renderer, scena, svetla
+// ---------------------------------------------------------------
+const platno = document.getElementById('igra');
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas: platno, antialias: true, powerPreference: 'high-performance' });
+} catch (e) {
+  document.getElementById('greska').style.display = 'flex';
+  throw e;
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scena = new THREE.Scene();
+{
+  // Nebo: svetloplavi gradijent
+  const c = document.createElement('canvas'); c.width = 2; c.height = 256;
+  const k = c.getContext('2d');
+  const gr = k.createLinearGradient(0, 0, 0, 256);
+  gr.addColorStop(0, BOJE.nebo); gr.addColorStop(0.55, '#c4e2f0'); gr.addColorStop(1, BOJE.horizont);
+  k.fillStyle = gr; k.fillRect(0, 0, 2, 256);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  scena.background = t;
+}
+scena.fog = new THREE.Fog(BOJE.horizont, 90, 420);
+
+scena.add(new THREE.HemisphereLight(0xeaf4ff, 0x8a8577, 1.6));
+const sunce = new THREE.DirectionalLight(0xfff4e0, 1.6);
+sunce.position.set(-0.6, 1, 0.35);
+scena.add(sunce);
+
+const mat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+const matBezMagle = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, fog: false });
+
+// ---------------------------------------------------------------
+// Kolovoz (jedna duga traka asfalta koja prati auto)
+// ---------------------------------------------------------------
+const asfalt = new THREE.Mesh(
+  new THREE.PlaneGeometry(PUT.polaKolovoza * 2, 1200).rotateX(-Math.PI / 2),
+  new THREE.MeshLambertMaterial({ color: BOJE.asfalt })
+);
+scena.add(asfalt);
+
+// Zemlja ispod svega (vidi se u daljini kroz prolaze)
+const zemlja = new THREE.Mesh(
+  new THREE.PlaneGeometry(3000, 3000).rotateX(-Math.PI / 2),
+  new THREE.MeshLambertMaterial({ color: BOJE.trava })
+);
+zemlja.position.y = -0.05;
+scena.add(zemlja);
+
+// ---------------------------------------------------------------
+// Brda u daljini (prate auto, deluju beskonacno daleko)
+// ---------------------------------------------------------------
+const brda = (() => {
+  const s = new Spajac(), r = rng(7);
+  for (let i = 0; i < 46; i++) {
+    const ugao = (i / 46) * Math.PI * 2 + r() * 0.05;
+    const rad = 700 + r() * 120;
+    const vis = 40 + r() * 70, sir = 120 + r() * 120;
+    const g = new THREE.ConeGeometry(sir, vis, 5, 1);
+    s.dodaj(g, i % 2 ? BOJE.brdo : BOJE.brdo2, Math.cos(ugao) * rad, vis / 2 - 8, Math.sin(ugao) * rad, r() * 3);
+  }
+  return s.napravi(matBezMagle);
+})();
+scena.add(brda);
+
+// ---------------------------------------------------------------
+// Segmenti ulice: trotoari, ivicnjaci, linije, zgrade, drvece
+// ---------------------------------------------------------------
+function napraviSegment(seme) {
+  const r = rng(seme), s = new Spajac(), L = PUT.segment;
+  const { polaKolovoza: pk, trotoar: tr, ivicnjak: iv, fasada: fa } = PUT;
+
+  // isprekidana linija po sredini (3 m linija, 3 m razmak)
+  for (let z = -1.5; z > -L; z -= 6) s.kutija(0.15, 0.02, 3, BOJE.linija, 0, 0, z - 1.5);
+
+  for (const strana of [-1, 1]) {
+    // ivicnjak i trotoar
+    s.kutija(0.25, iv, L, BOJE.ivicnjak, strana * (pk + 0.125), 0, -L / 2);
+    s.kutija(tr - 0.25, iv, L, BOJE.trotoar, strana * (pk + 0.25 + (tr - 0.25) / 2), 0, -L / 2);
+
+    // zgrade ili park
+    const park = r() < 0.18;
+    if (park) {
+      s.kutija(30, 0.08, L, BOJE.trava, strana * (fa + 15), 0, -L / 2);
+      for (let i = 0; i < 5; i++) drvo(s, r, strana * (fa + 3 + r() * 22), -r() * L, 1.2);
+    } else {
+      let z = 0;
+      while (z > -L + 4) {
+        const sir = Math.min(8 + r() * 10, L + z);
+        if (sir < 4) break;
+        zgrada(s, r, strana, z, sir);
+        z -= sir;
+      }
+    }
+
+    // drvored na trotoaru
+    for (let z = -6 - r() * 4; z > -L; z -= 12 + r() * 6) drvo(s, r, strana * (pk + tr - 1.1), z, 1);
+  }
+  const m = s.napravi(mat);
+  return m;
+}
+
+function zgrada(s, r, strana, z0, sir) {
+  const spratova = 2 + Math.floor(r() * 5);
+  const visSprata = 3.1;
+  const vis = spratova * visSprata + 1;
+  const dub = 12 + r() * 8;
+  const uvlacenje = r() * 1.2;
+  const boja = FASADE[Math.floor(r() * FASADE.length)];
+  const xFasade = strana * (PUT.fasada + uvlacenje);
+  const cz = z0 - sir / 2;
+  s.kutija(dub, vis, sir - 0.3, boja, xFasade + strana * dub / 2, 0, cz);
+  // krovni venac
+  s.kutija(0.5, 0.35, sir - 0.1, 0xcdbf9f, xFasade + strana * 0.2, vis, cz);
+
+  // prozori na fasadi okrenutoj ulici
+  const kolona = Math.max(1, Math.floor((sir - 1.5) / 2.6));
+  const korak = (sir - 0.3) / kolona;
+  for (let sp = 0; sp < spratova; sp++) {
+    const y = 1.6 + sp * visSprata;
+    for (let k = 0; k < kolona; k++) {
+      const pz = z0 - 0.15 - korak * (k + 0.5);
+      if (sp === 0 && k === Math.floor(kolona / 2) && r() < 0.6) {
+        s.kutija(0.08, 2.3, 1.4, 0x6b5440, xFasade - strana * 0.02, 0, pz);      // ulazna vrata
+        continue;
+      }
+      s.kutija(0.08, 1.6, 1.25, BOJE.okvir, xFasade - strana * 0.02, y - 0.1, pz);
+      s.kutija(0.1, 1.4, 1.05, BOJE.prozor, xFasade - strana * 0.04, y, pz);
+    }
+  }
+}
+
+function drvo(s, r, x, z, vel) {
+  const v = vel * (0.85 + r() * 0.4);
+  s.kutija(0.25 * v, 2.2 * v, 0.25 * v, BOJE.stablo, x, 0, z);
+  const g = new THREE.IcosahedronGeometry(1.6 * v, 0);
+  s.dodaj(g, r() < 0.5 ? BOJE.krosnja : BOJE.krosnja2, x, 3.2 * v, z, r() * 3);
+}
+
+const segmenti = [];
+for (let i = 0; i < PUT.brojSegmenata; i++) {
+  const m = napraviSegment(1000 + i * 17);
+  m.position.z = -i * PUT.segment + PUT.segment;   // jedan segment iza auta
+  scena.add(m);
+  segmenti.push(m);
+}
+
+// ---------------------------------------------------------------
+// Kamera i unutrasnjost kola (hauba, tabla, A stubovi, volan)
+// ---------------------------------------------------------------
+const VOZAC_X = -0.15;               // vozac sedi malo levo od sredine kola
+const VISINA_OKA = 1.2;
+const kamera = new THREE.PerspectiveCamera(60, 16 / 9, 0.05, 2000);
+scena.add(kamera);
+
+const kokpit = new THREE.Group();
+kamera.add(kokpit);
+const matKokpit = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, fog: false });
+
+{
+  // Hauba: zakrivljena krem povrsina ispred vozaca
+  const sir = 1.9, duz = 1.9;
+  const g = new THREE.PlaneGeometry(sir, duz, 14, 8).rotateX(-Math.PI / 2);
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), z = p.getZ(i);
+    const xn = x / (sir / 2), zn = (z + duz / 2) / duz;      // zn: 0 kod stakla, 1 napred
+    const y = -0.16 * xn * xn - 0.22 * zn * zn;
+    p.setXYZ(i, x * (1 - 0.12 * zn), y, z);
+  }
+  g.computeVertexNormals();
+  const s = new Spajac();
+  s.dodaj(g, BOJE.hauba);
+  const hauba = s.napravi(matKokpit);
+  hauba.position.set(-VOZAC_X, -0.58, -1.1 - duz / 2);
+  kokpit.add(hauba);
+
+  const k = new Spajac();
+  // Kontrolna tabla
+  k.kutija(2.6, 0.22, 0.5, BOJE.tabla, -VOZAC_X, -0.72, -0.82);
+  k.kutija(2.6, 0.04, 0.06, 0x2b2e34, -VOZAC_X, -0.51, -1.05);
+  // A stubovi (nagnuti)
+  for (const st of [-1, 1]) {
+    const g2 = new THREE.BoxGeometry(0.1, 1.6, 0.1);
+    g2.rotateZ(st * 0.18); g2.rotateX(0.55);
+    k.dodaj(g2, BOJE.stub, -VOZAC_X + st * 0.88, 0.1, -0.62);
+  }
+  kokpit.add(k.napravi(matKokpit));
+
+  // Volan
+  const volan = new THREE.Group();
+  const v = new Spajac();
+  v.dodaj(new THREE.TorusGeometry(0.17, 0.026, 8, 28), BOJE.volan);
+  v.dodaj(new THREE.CylinderGeometry(0.055, 0.06, 0.05, 12).rotateX(Math.PI / 2), 0x2b2e34);
+  v.kutija(0.32, 0.035, 0.03, BOJE.volan, 0, -0.0175, 0);
+  v.kutija(0.035, 0.17, 0.03, BOJE.volan, 0, -0.17, 0);
+  volan.add(v.napravi(matKokpit));
+  volan.position.set(-0.18, -0.39, -0.55);
+  volan.rotation.x = -0.32;
+  kokpit.add(volan);
+  kokpit.userData.volan = volan;
+}
+
+// ---------------------------------------------------------------
+// Stanje auta i kontrole
+// ---------------------------------------------------------------
+const auto = {
+  z: 0,                              // napred je -z
+  x: PUT.traka / 2,                  // desna traka
+  v: 0,                              // m/s
+  a: 0                               // trenutno ubrzanje (za naginjanje kamere)
+};
+
+const tasteri = { gas: false, kocnica: false };
+const MAPA = { ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'kocnica', KeyS: 'kocnica' };
+const STRELICE = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space']);
+
+addEventListener('keydown', e => {
+  if (STRELICE.has(e.code)) e.preventDefault();
+  const t = MAPA[e.code]; if (t) tasteri[t] = true;
+});
+addEventListener('keyup', e => {
+  const t = MAPA[e.code]; if (t) tasteri[t] = false;
+});
+addEventListener('blur', () => { tasteri.gas = tasteri.kocnica = false; });
+document.addEventListener('visibilitychange', () => { if (document.hidden) tasteri.gas = tasteri.kocnica = false; });
+platno.focus();
+
+function fizika(dt) {
+  let a = -FIZIKA.otpor - FIZIKA.vazduh * auto.v * auto.v;
+  if (tasteri.gas) a += FIZIKA.gas * (1 - auto.v / FIZIKA.vMaks) + FIZIKA.otpor;
+  if (tasteri.kocnica) a -= FIZIKA.kocnica;
+  if (auto.v <= 0 && a < 0) a = 0;
+  auto.v = Math.max(0, auto.v + a * dt);
+  auto.z -= auto.v * dt;
+  auto.a += (a - auto.a) * Math.min(1, dt * 4);
+}
+
+// ---------------------------------------------------------------
+// Petlja
+// ---------------------------------------------------------------
+const elBrzina = document.getElementById('brzina');
+let vreme = 0, prikazanaBrzina = -1;
+
+function azurirajSvet() {
+  // segmenti koji ostanu iza auta selimo napred
+  const ukupno = PUT.segment * PUT.brojSegmenata;
+  for (const m of segmenti) {
+    if (m.position.z - PUT.segment > auto.z + PUT.segment) m.position.z -= ukupno;
+  }
+  asfalt.position.z = auto.z - 400;
+  zemlja.position.z = auto.z;
+  brda.position.set(auto.x, 0, auto.z);
+}
+
+function azurirajKameru(dt) {
+  const ljuljanje = smanjenoKretanje ? 0 : 1;
+  const brzinaF = Math.min(1, auto.v / 14);
+  const tresenje = Math.sin(vreme * 9) * 0.004 * brzinaF * ljuljanje;
+  kamera.position.set(auto.x + VOZAC_X, VISINA_OKA + tresenje, auto.z);
+  // blago naginjanje pri kocenju i ubrzanju
+  const nagib = THREE.MathUtils.clamp(-auto.a * 0.006, -0.03, 0.04) * ljuljanje;
+  kamera.rotation.set(-0.05 + nagib, 0, 0);
+}
+
+function promenaVelicine() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false);
+  kamera.aspect = w / h;
+  // na uzim ekranima siri ugao da se vidi put
+  kamera.fov = kamera.aspect < 1.3 ? 75 : 60;
+  kamera.updateProjectionMatrix();
+}
+addEventListener('resize', promenaVelicine);
+promenaVelicine();
+
+let prosli = performance.now();
+function petlja(sad) {
+  const dt = Math.min(0.05, (sad - prosli) / 1000);
+  prosli = sad;
+  vreme += dt;
+  fizika(dt);
+  azurirajSvet();
+  azurirajKameru(dt);
+  const kmh = Math.round(auto.v * 3.6);
+  if (kmh !== prikazanaBrzina) { elBrzina.textContent = kmh; prikazanaBrzina = kmh; }
+  renderer.render(scena, kamera);
+  requestAnimationFrame(petlja);
+}
+requestAnimationFrame(petlja);
+
+// za testiranje iz konzole
+window.VIP = { auto, tasteri };
+</script>
+</body>
+</html>

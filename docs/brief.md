@@ -107,18 +107,27 @@ Pratiti Prilog A. Elementi:
 
 ---
 
-## 6. Staza 1 (prva verzija)
+## 6. Staza 1
 
-Jedna linearna staza od 3 do 4 minuta, 8 zadataka redom. Oko svakog zadatka postoji "zona provere" koja aktivira pravila i bodovanje.
+*Izmenjeno posle testiranja (Goran): gušća staza sa saobraćajem iz više pravaca.*
 
-1. **Polazak sa parkinga:** uključi levi migavac pre uključivanja u saobraćaj.
-2. **Ograničenje 50 km/h:** gradska ulica, tabla 50. Ne prelazi 50.
-3. **STOP znak na raskrsnici:** potpuno zaustavljanje (brzina 0 km/h najmanje 1 sekundu) pre bele linije. Zatim propusti auto koji dolazi sa desne strane.
-4. **Pešački prelaz:** pešak kreće preko prelaza; igrač mora da stane pre prelaza i sačeka da pešak pređe.
-5. **Semafor:** crveno, pa zeleno. Prolazak na crveno je pad ispita. Žuto: ako može bezbedno da stane, treba da stane.
-6. **Prestrojavanje u levu traku:** levi migavac najmanje 1 sekundu pre početka prestrojavanja, proveri retrovizor (auto iza mora biti na bezbednoj udaljenosti).
-7. **Skretanje levo na raskrsnici bez znakova:** pravilo desne strane; propusti vozilo koje dolazi zdesna i vozilo iz suprotnog smera.
-8. **Zona škole, ograničenje 30 km/h,** pa parkiranje na označeno mesto pored trotoara sa desnim migavcem.
+Jedna linearna staza od oko 2 minuta, 13 zadataka redom. Razmak između zadataka je 8 do 10 sekundi vožnje. Ostali učesnici nisu statični: kola dolaze iz više pravaca, ponekad neko čeka igrača, ponekad igrač čeka njih. Oko svakog zadatka postoji "zona provere" koja aktivira pravila i bodovanje. Brojevi članova zakona se ne prikazuju u igri, samo kratke poruke.
+
+| # | Zadatak | Ko koga propušta |
+|---|---|---|
+| 1 | **Polazak sa parkinga** | Iza nailazi auto. Igrač uključuje levi migavac i čeka da prođe, pa izlazi u traku. |
+| 2 | **Raskrsnica bez znakova, auto sleva** | Pravilo desne strane: auto sleva propušta igrača i čeka. Igrač prolazi bez zaustavljanja. |
+| 3 | **Pešački prelaz** | Pešak kreće preko prelaza; igrač staje i propušta ga. |
+| 4 | **Raskrsnica bez znakova, auto zdesna** | Pravilo desne strane: igrač propušta auto zdesna. |
+| 5 | **Raskrsnica sa znakom STOP** | Potpuno zaustavljanje (0 km/h najmanje 1 s) pre linije, pa propuštanje vozila na putu sa prvenstvom iz oba smera. |
+| 6 | **Raskrsnica bez znakova sa tramvajskim šinama** | Tramvaj dolazi sleva i ima prvenstvo (na raskrsnici bez znakova tramvaj ima prvenstvo u svim slučajevima). |
+| 7 | **Vozilo sa rotacijom: hitna pomoć iza igrača** | Igrač se sklanja udesno i usporava ili staje dok hitna ne prođe. |
+| 8 | **Semafor** | Crveno, pa zeleno. Prolazak na crveno je pad. |
+| 9 | **Policija sa rotacijom i sirenom kroz raskrsnicu** | I kad igrač dobije zeleno, staje i propušta policiju. |
+| 10 | **Ukrštanje sa putem sa prvenstvom prolaza** | Znak trougao; skretanje desno na bulevar tek kad igrač propusti vozila na bulevaru. |
+| 11 | **Prestrojavanje u levu traku** | Auto u levoj traci prilazi iza (vidi se u retrovizoru); igrač ga propušta, pa se prestrojava sa migavcem. |
+| 12 | **Skretanje levo uz vozilo iz suprotnog smera** | Pravilo levog skretanja: igrač propušta vozila iz suprotnog smera. |
+| 13 | **Zona škole 30 km/h i parkiranje** | Parkiranje na označeno žuto mesto uz desni migavac. |
 
 Kraj staze: ekran rezultata.
 
@@ -132,24 +141,31 @@ Sistem po uzoru na ispit: kazneni poeni plus greške koje odmah obaraju ispit.
 - Prolazak kroz STOP bez potpunog zaustavljanja.
 - Prolazak na crveno svetlo.
 - Nepropuštanje pešaka na pešačkom prelazu.
-- Nepropuštanje vozila koje ima pravo prvenstva.
-- Udar u vozilo, pešaka ili objekat.
+- Nepropuštanje vozila koje ima pravo prvenstva (vozilo zdesna, vozilo na putu sa prvenstvom, vozilo iz suprotnog smera pri skretanju levo, auto koje nailazi pri polasku).
+- Nepropuštanje tramvaja.
+- Nepropuštanje vozila hitne pomoći ili policije sa rotacijom i sirenom.
+- Udar u vozilo, tramvaj, pešaka ili objekat.
 - Brzina veća od dozvoljene za više od 20 km/h.
+- Skretanje sa zadate rute ili vožnja u suprotnom smeru.
 
 ### Kazneni poeni
 | Greška | Poeni |
 |---|---|
 | Prestrojavanje ili skretanje bez migavca | +2 |
 | Migavac uključen prekasno (manje od 1 s pre manevra) | +1 |
-| Migavac zaboravljen uključen posle manevra (duže od 3 s) | +1 |
+| Migavac ostao uključen bez manevra (duže od 3 s) | +1 |
 | Prekoračenje brzine do 10 km/h | +1 |
 | Prekoračenje brzine 10 do 20 km/h | +3 |
 | Naglo kočenje bez razloga | +1 |
 | Zaustavljanje predaleko od STOP linije (više od 3 m) | +1 |
 | Prelazak preko linije trotoara | +2 |
+| Prelazak u suprotnu traku | +2 |
 | Prestrojavanje kad je auto u retrovizoru preblizu | +3 |
+| Nisi se prestrojio u levu traku pre skretanja levo | +2 |
+| Nepotrebno zaustavljanje, imao si prvenstvo | +1 |
+| Nisi se parkirao na označeno mesto (vožnja se završava) | +3 |
 
-**Položio** ako nema greške koja obara i ukupno je manje od 10 kaznenih poena.
+Sklanjanje udesno pred hitnom pomoći ne traži migavac. **Položio** ako nema greške koja obara i ukupno je manje od 10 kaznenih poena.
 
 Poruke grešaka u igri su kratke, na srpskom, latinica, bez crtica. Primer: "Nisi se potpuno zaustavio na STOP znaku".
 

@@ -16,14 +16,14 @@ Igra je jedan samostalan fajl, `index.html`. Za probu ga otvori direktno u pregl
 
 ## Staza 1
 
-Glavna ulica sa parkingom, raskrsnica sa znakom STOP, pešački prelaz, semafor, deonica sa dve trake, skretanje levo i školska ulica sa označenim mestom za parkiranje. Savršena vožnja traje oko 3 minuta.
+13 zadataka za oko 2 minuta: polazak sa parkinga, dve raskrsnice bez znakova (pravilo desne strane u oba smera), pešački prelaz, STOP, tramvaj, hitna pomoć iza igrača, semafor, policija na zeleno, desno na bulevar sa prvenstvom prolaza, prestrojavanje uz auto u retrovizoru, levo uz vozila iz suprotnog smera i parkiranje u zoni škole. Detalji su u [docs/brief.md](docs/brief.md), poglavlje 6.
 
 ## Stanje razvoja
 
 - [x] Korak 1: scena, kamera iz kola, hauba, volan, vožnja pravo
 - [x] Korak 2: HUD (brzinomer, migavci, retrovizor)
 - [x] Korak 3: Staza 1 sa 8 zadataka i pravilima
-- [ ] Korak 4: ostali učesnici u saobraćaju
+- [x] Korak 4: ostali učesnici u saobraćaju (kola, pešak, tramvaj, hitna, policija)
 - [ ] Korak 5: ekrani (početni, pauza, rezultat)
 - [ ] Korak 6: kontrole za telefon
 - [ ] Korak 7: poliranje

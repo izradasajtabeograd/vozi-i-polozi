@@ -53,10 +53,51 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--asfalt);font-fam
 #bedz .ime{font-weight:900;font-size:20px;line-height:1}
 #bedz .sajt{font-size:12px;color:#c9ccd3;letter-spacing:.12em;line-height:1;margin-top:4px}
 #poeni .poslednja.obara{color:#ff8a8a;font-weight:700}
+/* Dugmad za zvuk i pauzu, ispod kaznenih poena */
+#alatke{right:24px;top:calc(22px + 112px * var(--s));display:flex;gap:10px}
+.alatka{pointer-events:auto;width:46px;height:46px;border-radius:12px;border:0;background:rgba(21,23,28,.82);color:var(--bela);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+.alatka svg{width:24px;height:24px}
+.alatka:focus-visible{outline:3px solid var(--zuta);outline-offset:2px}
+#pauzaDugme{display:none}
+/* Kontrole na ekranu za telefon: vide se samo na uredjajima na dodir */
+:root{--d:clamp(56px,17vh,84px)}
+.dodirne{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));display:none;flex-direction:column;gap:12px;z-index:2;pointer-events:none}
+.dodirne .red{display:flex;gap:12px;align-items:flex-end}
+#kontroleLevo{left:calc(16px + env(safe-area-inset-left));align-items:flex-start}
+#kontroleDesno{right:calc(16px + env(safe-area-inset-right));align-items:flex-end}
+.dt{pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;width:var(--d);height:var(--d);border-radius:16px;border:2px solid rgba(255,255,255,.22);background:rgba(21,23,28,.38);color:rgba(255,255,255,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;font-family:Overpass,system-ui,sans-serif;font-weight:800;font-size:12px;letter-spacing:.06em}
+.dt svg{width:46%;height:46%}
+.dt.pritisnut{background:rgba(244,194,13,.6);border-color:var(--zuta);color:var(--asfalt)}
+#gasDugme{height:calc(var(--d) * 1.45)}
+#kocnicaDugme{width:calc(var(--d) * 1.25)}
+body.dodir .dodirne{display:flex}
+body.dodir #pauzaDugme{display:flex}
+body.dodir #bedz,body.dodir #migavci .podsetnik{display:none}
+/* na telefonu migavci idu iznad volana i pedala */
+body.dodir #migavci{display:contents}
+body.dodir .migavac{position:fixed;z-index:2;bottom:calc(14px + env(safe-area-inset-bottom) + var(--d) * 1.45 + 12px);width:max(56px,calc(var(--d) * .8));height:max(56px,calc(var(--d) * .8));background:rgba(21,23,28,.62);border:2px solid rgba(255,255,255,.18);-webkit-tap-highlight-color:transparent}
+body.dodir #migLevo{left:calc(16px + env(safe-area-inset-left));bottom:calc(14px + env(safe-area-inset-bottom) + var(--d) + 12px)}
+body.dodir #migDesno{right:calc(16px + env(safe-area-inset-right))}
+body.dodir #brzinomer{right:auto;left:50%;bottom:10px;transform:translateX(-50%) scale(var(--s));transform-origin:bottom center}
+.kontrole.samoDodir{display:none}
+body.dodir .kontrole.samoDodir{display:grid}
+body.dodir .samoTastatura{display:none}
+/* U uspravnom polozaju telefona trazimo da se okrene */
+#okreni{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:var(--asfalt);font-family:Overpass,system-ui,sans-serif}
+#okreni svg{width:96px;height:96px}
+#okreni b{font-size:26px;font-weight:900}
+#okreni span{font-family:Figtree,system-ui,sans-serif;font-size:16px;color:#c9ccd3;max-width:280px;line-height:1.4}
+@media (orientation:portrait){body.dodir #okreni{display:flex}}
+@media (prefers-reduced-motion:no-preference){#okreni svg{animation:okret 2.4s ease-in-out infinite}}
+@keyframes okret{0%,25%{transform:rotate(0)}55%,100%{transform:rotate(-90deg)}}
+@media (max-height:500px){.ekran .okvir{padding:16px 22px}.logo .oznakaL{width:48px;height:48px;font-size:34px}.logo .ime{font-size:28px}.ekran h2{font-size:32px}.ispod{margin:10px 0 0;font-size:16px}.kontrole{margin-top:10px;gap:5px 14px;font-size:14px}.najbolji{margin-top:10px}.dugmad{margin-top:12px}.napomena{margin-top:10px}}
+@media (prefers-reduced-motion:reduce){.ekran,.ekran.vidljiv,.ekran .okvir{transition:none}}
 /* Ekrani: pocetni, pauza, rezultat */
-.ekran{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(15,17,21,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:5}
-.ekran.vidljiv{display:flex}
-.ekran .okvir{background:var(--krem);color:var(--tekst);border-radius:18px;padding:26px 30px;width:min(560px,100%);max-height:100%;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+/* ekrani se pojavljuju i nestaju blagim pretapanjem */
+.ekran{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15,17,21,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:5;opacity:0;visibility:hidden;transition:opacity .28s ease,visibility 0s linear .28s}
+.ekran.vidljiv{opacity:1;visibility:visible;transition:opacity .28s ease}
+.ekran .okvir{background:var(--krem);color:var(--tekst);border-radius:18px;padding:26px 30px;width:min(560px,100%);max-height:100%;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.4);transform:translateY(14px) scale(.98);transition:transform .34s cubic-bezier(.2,.8,.2,1);touch-action:pan-y}
+.ekran.vidljiv .okvir{transform:none}
 .ekran .nat{font-family:Overpass,system-ui,sans-serif;font-size:12px;letter-spacing:.14em;font-weight:800;color:var(--siva)}
 .ekran h2{font-family:Overpass,system-ui,sans-serif;font-weight:900;font-size:44px;line-height:1.05;margin:6px 0 0}
 .ekran h2.polozio{color:var(--zelena)}
@@ -115,6 +156,15 @@ kbd{font-family:Overpass,system-ui,sans-serif;font-weight:800;font-size:14px;bac
   <div class="poslednja" id="poslednjaGreska"></div>
 </div>
 
+<div id="alatke" class="hud">
+  <button class="alatka" id="zvukDugme" type="button" aria-label="Zvuk" aria-pressed="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path class="talasi" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/><path class="nema" d="M16 9.5l5 5M21 9.5l-5 5" style="display:none"/></svg>
+  </button>
+  <button class="alatka" id="pauzaDugme" type="button" aria-label="Pauza">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>
+  </button>
+</div>
+
 <div id="upozorenje" class="hud" role="status" aria-live="polite"></div>
 
 <div id="brzinomer" class="hud" aria-label="Brzinomer">
@@ -128,9 +178,32 @@ kbd{font-family:Overpass,system-ui,sans-serif;font-weight:800;font-size:14px;bac
 </div>
 
 <div id="migavci" class="hud">
-  <button class="migavac" id="migLevo" type="button" aria-label="Levi migavac" aria-pressed="false">◀</button>
+  <button class="migavac" id="migLevo" type="button" aria-label="Levi migavac" aria-pressed="false">◀&#xFE0E;</button>
   <div class="podsetnik">Q / E migavci &nbsp;·&nbsp; ← → volan &nbsp;·&nbsp; ↑ ↓ gas i kočnica</div>
-  <button class="migavac" id="migDesno" type="button" aria-label="Desni migavac" aria-pressed="false">▶</button>
+  <button class="migavac" id="migDesno" type="button" aria-label="Desni migavac" aria-pressed="false">▶&#xFE0E;</button>
+</div>
+
+<div id="kontroleLevo" class="dodirne">
+  <div class="red">
+    <button class="dt" id="volanLevo" data-taster="levo" type="button" aria-label="Volan levo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 18V13a5 5 0 0 0-5-5H5"/><path d="M9 4L5 8l4 4"/></svg>
+    </button>
+    <button class="dt" id="volanDesno" data-taster="desno" type="button" aria-label="Volan desno">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 18V13a5 5 0 0 1 5-5h9"/><path d="M15 4l4 4-4 4"/></svg>
+    </button>
+  </div>
+</div>
+<div id="kontroleDesno" class="dodirne">
+  <div class="red">
+    <button class="dt" id="kocnicaDugme" data-taster="kocnica" type="button" aria-label="Kočnica">KOČNICA</button>
+    <button class="dt" id="gasDugme" data-taster="gas" type="button" aria-label="Gas">GAS</button>
+  </div>
+</div>
+
+<div id="okreni" role="alert">
+  <svg viewBox="0 0 96 96" fill="none" stroke="#F4C20D" stroke-width="5" stroke-linejoin="round" aria-hidden="true"><rect x="30" y="12" width="36" height="72" rx="7"/><path d="M44 74h8" stroke-linecap="round"/></svg>
+  <b>Okreni telefon</b>
+  <span>VOZI I POLOŽI se vozi sa telefonom položenim na stranu.</span>
 </div>
 
 <div id="bedz" class="hud kartica">
@@ -145,11 +218,18 @@ kbd{font-family:Overpass,system-ui,sans-serif;font-weight:800;font-size:14px;bac
       <div><div class="ime" id="startNaslov">VOZI I POLOŽI</div><div class="sajt">AUTOSKOLEBEOGRAD.COM</div></div>
     </div>
     <p class="ispod">Proveri da li bi položio vožnju u Beogradu.</p>
-    <dl class="kontrole">
+    <dl class="kontrole samoDodir">
+      <dt><b>levo dole</b></dt><dd>volan levo i desno, koliko držiš toliko skrećeš</dd>
+      <dt><b>desno dole</b></dt><dd>gas i kočnica</dd>
+      <dt><b>iznad njih</b></dt><dd>levi i desni migavac</dd>
+      <dt><b>gore desno</b></dt><dd>zvuk i pauza</dd>
+    </dl>
+    <dl class="kontrole samoTastatura">
       <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>gas i kočnica</dd>
       <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>volan, koliko držiš toliko skrećeš</dd>
       <dt><kbd>Q</kbd> <kbd>E</kbd></dt><dd>levi i desni migavac</dd>
       <dt><kbd>P</kbd> <kbd>Esc</kbd></dt><dd>pauza</dd>
+      <dt><kbd>M</kbd></dt><dd>zvuk uključen ili isključen</dd>
     </dl>
     <p class="najbolji" id="najbolji"></p>
     <div class="dugmad"><button class="dugme glavno" id="kreni" type="button">Kreni</button></div>
@@ -280,7 +360,8 @@ try {
   document.getElementById('greska').style.display = 'flex';
   throw e;
 }
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+// telefoni imaju gust ekran, a slabiji procesor: tu je dovoljna nesto manja rezolucija
+renderer.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scena = new THREE.Scene();
@@ -950,11 +1031,13 @@ elMigLevo.addEventListener('click', () => prebaciMigavac('levo'));
 elMigDesno.addEventListener('click', () => prebaciMigavac('desno'));
 
 addEventListener('keydown', e => {
+  if (e.target.closest && e.target.closest('input,textarea')) return;
   if ((e.code === 'KeyP' || e.code === 'Escape') && !e.repeat) {
     if (rezim === 'voznja' && !ispit.kraj) postaviRezim('pauza');
     else if (rezim === 'pauza') nastavi();
     return;
   }
+  if (e.code === 'KeyM' && !e.repeat) { prebaciZvuk(); return; }
   if (rezim !== 'voznja') return;
   if (STRELICE.has(e.code)) e.preventDefault();
   const t = MAPA[e.code];
@@ -966,7 +1049,46 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => {
   const t = MAPA[e.code]; if (t) tasteri[t] = false;
 });
-function pustiSve() { for (const k in tasteri) tasteri[k] = false; }
+
+// Telefon: dugmad na ekranu menjaju iste tastere. Svaki prst je poseban pointer,
+// pa gas i volan mogu da se drze istovremeno.
+const DUGMAD_DODIR = [...document.querySelectorAll('[data-taster]')];
+for (const b of DUGMAD_DODIR) {
+  const t = b.dataset.taster;
+  const pusti = () => { tasteri[t] = false; b.classList.remove('pritisnut'); };
+  b.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    if (rezim !== 'voznja') return;
+    try { b.setPointerCapture(e.pointerId); } catch (_) {}
+    tasteri[t] = true; b.classList.add('pritisnut');
+  });
+  b.addEventListener('pointerup', pusti);
+  b.addEventListener('pointercancel', pusti);
+  b.addEventListener('lostpointercapture', pusti);
+  b.addEventListener('contextmenu', e => e.preventDefault());
+}
+function pustiSve() {
+  for (const k in tasteri) tasteri[k] = false;
+  for (const b of DUGMAD_DODIR) b.classList.remove('pritisnut');
+}
+// Uredjaj na dodir: prikazi dugmad (glavni pokazivac je prst ili je stigao dodir)
+function ukljuciDodir() {
+  if (document.body.classList.contains('dodir')) return;
+  document.body.classList.add('dodir');
+  promenaVelicine();
+}
+if (matchMedia('(pointer: coarse)').matches) ukljuciDodir();
+addEventListener('pointerdown', e => { if (e.pointerType === 'touch') ukljuciDodir(); }, true);
+// na telefonu igra ide preko celog ekrana i u polozenom polozaju, ako pregledac to dozvoljava
+function punEkran() {
+  if (!document.body.classList.contains('dodir')) return;
+  const el = document.documentElement;
+  if (document.fullscreenElement || !el.requestFullscreen) return;
+  el.requestFullscreen({ navigationUI: 'hide' }).then(() => {
+    if (screen.orientation && screen.orientation.lock) return screen.orientation.lock('landscape').catch(() => {});
+  }).catch(() => {});
+}
+function uspravno() { return document.body.classList.contains('dodir') && innerHeight > innerWidth; }
 // kad prozor ili tab izgubi fokus, voznja se sama pauzira
 function automatskaPauza() { pustiSve(); if (rezim === 'voznja' && !ispit.kraj) postaviRezim('pauza'); }
 addEventListener('blur', automatskaPauza);
@@ -1041,6 +1163,7 @@ function kazna(poeni, tekst) {
   ispit.greske.push(unos);
   ispit.poeni += poeni;
   prikaziPoene(unos);
+  zvukGreske(false);
   if (ispit.poeni >= MAKS_POENA) zavrsi(false);
   return unos;
 }
@@ -1056,6 +1179,7 @@ function obori(tekst) {
   const unos = { zadatak: Math.min(ispit.zadatak, ZADACI.length - 1) + 1, tekst, poeni: 0, obara: true };
   ispit.greske.push(unos);
   prikaziPoene(unos);
+  zvukGreske(true);
   zavrsi(false);
 }
 function zavrsi(polozio) {
@@ -1064,6 +1188,7 @@ function zavrsi(polozio) {
   ispit.polozio = polozio && ispit.poeni < MAKS_POENA && !ispit.greske.some(g => g.obara);
   ispit.trajanje = ispit.pocetak === null ? 0 : vreme - ispit.pocetak;
   ispit.krajT = 0;
+  if (ispit.polozio) zvukUspeha();
   pokaziPoruku(ispit.polozio ? 'Kraj vožnje' : (ispit.greske.some(g => g.obara) ? 'Ispit je prekinut' : 'Kraj vožnje'), 3);
 }
 function pokaziPoruku(tekst, sekundi) { ispit.poruka = tekst; ispit.porukaT = sekundi; }
@@ -1937,9 +2062,13 @@ function postaviRezim(r) {
   if (r !== 'voznja') pustiSve();
   if (r === 'pauza') document.getElementById('nastavi').focus();
   if (r === 'voznja') platno.focus();
+  zvukZaRezim();
 }
-function nastavi() { postaviRezim('voznja'); }
-function kreni() { novaVoznja(); postaviRezim('voznja'); }
+function nastavi() { probudiZvuk(); punEkran(); postaviRezim('voznja'); }
+function kreni() { probudiZvuk(); punEkran(); novaVoznja(); postaviRezim('voznja'); }
+document.getElementById('pauzaDugme').addEventListener('click', () => {
+  if (rezim === 'voznja' && !ispit.kraj) postaviRezim('pauza');
+});
 document.getElementById('kreni').addEventListener('click', kreni);
 document.getElementById('nastavi').addEventListener('click', nastavi);
 document.getElementById('ispocetka').addEventListener('click', kreni);
@@ -2078,6 +2207,7 @@ function azurirajHud(dt) {
   const svetli = !!migavac.smer && (migavac.t % PERIOD_MIGAVCA) < PERIOD_MIGAVCA * 0.55;
   if (svetli !== migavacSvetli) {
     migavacSvetli = svetli;
+    zvukMigavca(svetli);
     elMigLevo.classList.toggle('svetli', svetli && migavac.smer === 'levo');
     elMigDesno.classList.toggle('svetli', svetli && migavac.smer === 'desno');
   }
@@ -2088,10 +2218,178 @@ function azurirajHud(dt) {
 }
 
 // ---------------------------------------------------------------
+// Zvuk: sve se pravi u Web Audio, bez spoljnih fajlova. Pregledac dozvoljava zvuk
+// tek posle klika ili tastera, pa se sistem budi na "Kreni".
+// ---------------------------------------------------------------
+const KLJUC_ZVUK = 'voziIPolozi.zvuk';
+const zvuk = { ctx: null, glavni: null, motor: null, sum: null, sirene: new Map(), ukljucen: true };
+try { zvuk.ukljucen = localStorage.getItem(KLJUC_ZVUK) !== '0'; } catch (e) {}
+const elZvukDugme = document.getElementById('zvukDugme');
+
+function probudiZvuk() {
+  if (!zvuk.ukljucen) return;
+  if (!zvuk.ctx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try { zvuk.ctx = new AC(); } catch (e) { return; }
+    napraviMotor();
+  }
+  if (zvuk.ctx.state === 'suspended') zvuk.ctx.resume().catch(() => {});
+}
+function napraviMotor() {
+  const c = zvuk.ctx;
+  zvuk.glavni = c.createGain(); zvuk.glavni.gain.value = 0; zvuk.glavni.connect(c.destination);
+  // motor: testerasti i cetvrtasti talas kroz niskopropusni filter, tiho zujanje
+  const filter = c.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 300; filter.Q.value = 1.2;
+  const jacina = c.createGain(); jacina.gain.value = 0;
+  const o1 = c.createOscillator(); o1.type = 'sawtooth'; o1.frequency.value = 27;
+  const o2 = c.createOscillator(); o2.type = 'square'; o2.frequency.value = 13.5;
+  const g2 = c.createGain(); g2.gain.value = 0.45;
+  o1.connect(filter); o2.connect(g2); g2.connect(filter); filter.connect(jacina); jacina.connect(zvuk.glavni);
+  o1.start(); o2.start();
+  zvuk.motor = { o1, o2, filter, jacina };
+  // kratak beli sum za klik migavca
+  const b = c.createBuffer(1, Math.round(c.sampleRate * 0.03), c.sampleRate), d = b.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
+  zvuk.sum = b;
+}
+// zakazuje promenu samo kad se vrednost primetno promeni, da se dogadjaji ne gomilaju
+function glatko(param, vrednost, tau) {
+  if (param._v !== undefined && Math.abs(param._v - vrednost) <= Math.abs(vrednost) * 0.01 + 1e-4) return;
+  param._v = vrednost;
+  param.setTargetAtTime(vrednost, zvuk.ctx.currentTime, tau);
+}
+function zvukAktivan() { return !!(zvuk.ctx && zvuk.ukljucen && zvuk.ctx.state === 'running'); }
+function zvukZaRezim() {
+  if (!zvuk.ctx) return;
+  if (rezim === 'voznja' && zvuk.ukljucen) zvuk.ctx.resume().catch(() => {});
+  else {
+    glatko(zvuk.glavni.gain, 0, 0.05);
+    const c = zvuk.ctx;
+    setTimeout(() => { if (c.state === 'running' && (rezim !== 'voznja' || !zvuk.ukljucen)) c.suspend().catch(() => {}); }, 300);
+  }
+}
+function prebaciZvuk() {
+  zvuk.ukljucen = !zvuk.ukljucen;
+  try { localStorage.setItem(KLJUC_ZVUK, zvuk.ukljucen ? '1' : '0'); } catch (e) {}
+  prikaziZvuk();
+  if (zvuk.ukljucen) probudiZvuk();
+  zvukZaRezim();
+}
+function prikaziZvuk() {
+  elZvukDugme.setAttribute('aria-pressed', zvuk.ukljucen);
+  elZvukDugme.setAttribute('aria-label', zvuk.ukljucen ? 'Isključi zvuk' : 'Uključi zvuk');
+  elZvukDugme.querySelector('.talasi').style.display = zvuk.ukljucen ? '' : 'none';
+  elZvukDugme.querySelector('.nema').style.display = zvuk.ukljucen ? 'none' : '';
+}
+prikaziZvuk();
+elZvukDugme.addEventListener('click', () => { prebaciZvuk(); if (rezim === 'voznja') platno.focus(); });
+
+// jedan ton sa brzim napadom i opadanjem
+function ton(frekv, pocetak, trajanje, jacina, tip = 'square', frekvKraj) {
+  const c = zvuk.ctx, t = c.currentTime + pocetak;
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = tip; o.frequency.setValueAtTime(frekv, t);
+  if (frekvKraj) o.frequency.exponentialRampToValueAtTime(frekvKraj, t + trajanje);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(jacina, t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + trajanje);
+  o.connect(g); g.connect(zvuk.glavni);
+  o.start(t); o.stop(t + trajanje + 0.02);
+}
+// tik kad se sijalica upali, tak kad se ugasi
+function zvukMigavca(svetli) {
+  if (!zvukAktivan()) return;
+  const c = zvuk.ctx, src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+  src.buffer = zvuk.sum;
+  f.type = 'bandpass'; f.frequency.value = svetli ? 3200 : 2100; f.Q.value = 6;
+  g.gain.value = 0.9;
+  src.connect(f); f.connect(g); g.connect(zvuk.glavni);
+  src.start();
+}
+function zvukGreske(obara) {
+  if (!zvukAktivan()) return;
+  if (obara) { ton(240, 0, 0.55, 0.09, 'sawtooth', 120); return; }
+  ton(560, 0, 0.13, 0.07); ton(420, 0.15, 0.2, 0.07);
+}
+function zvukUspeha() {
+  if (!zvukAktivan()) return;
+  [523, 659, 784, 1047].forEach((f, i) => ton(f, i * 0.11, 0.35, 0.07, 'triangle'));
+}
+// sirena za hitnu (dva tona) i policiju (zavijanje), jaca kad je vozilo blize
+function sirena(a) {
+  let s = zvuk.sirene.get(a);
+  if (s) return s;
+  const c = zvuk.ctx;
+  const o = c.createOscillator(), filter = c.createBiquadFilter(), g = c.createGain();
+  o.type = 'sawtooth'; filter.type = 'lowpass'; filter.frequency.value = 2200;
+  g.gain.value = 0;
+  o.connect(filter); filter.connect(g);
+  let kraj = g;
+  if (c.createStereoPanner) { const p = c.createStereoPanner(); g.connect(p); kraj = p; s = { p }; }
+  kraj.connect(zvuk.glavni);
+  o.start();
+  s = Object.assign(s || {}, { o, g });
+  zvuk.sirene.set(a, s);
+  return s;
+}
+function azurirajZvuk() {
+  if (!zvukAktivan()) return;
+    const aktivno = rezim === 'voznja' && !elKraj.classList.contains('vidljiv');
+  glatko(zvuk.glavni.gain, aktivno ? 1 : 0, 0.08);
+  // obrtaji motora: pet brzina, prazan hod oko 800 o/min
+  const v = auto.v, prelazi = [0, 5, 9.5, 14, 19, 26];
+  let b = 0; while (b < 4 && v > prelazi[b + 1]) b++;
+  const deo = Math.min(1, (v - prelazi[b]) / (prelazi[b + 1] - prelazi[b]));
+  const gas = tasteri.gas && !ispit.kraj ? 1 : 0;
+  const obrtaji = v < 0.3 ? 800 + gas * 500 : 1300 + deo * 1900 + gas * 250;
+  const f = obrtaji / 30;
+  const m = zvuk.motor;
+  glatko(m.o1.frequency, f, 0.06);
+  glatko(m.o2.frequency, f / 2, 0.06);
+  glatko(m.filter.frequency, 220 + f * 3 + gas * 260, 0.08);
+  glatko(m.jacina.gain, 0.05 + gas * 0.035 + Math.min(v / 25, 1) * 0.02, 0.1);
+  // sirene
+  const c0 = Math.cos(auto.yaw), s0 = Math.sin(auto.yaw);
+  for (const a of AKTERI) {
+    if (!a.mesh.userData.svetla) continue;
+    const ide = a.aktivan && !a.gotov;
+    if (!ide && !zvuk.sirene.has(a)) continue;
+    const sr = sirena(a);
+    if (!ide) { glatko(sr.g.gain, 0, 0.1); continue; }
+    const dx = a.x - auto.x, dz = a.z - auto.z, d = Math.hypot(dx, dz);
+    glatko(sr.g.gain, 0.06 / (1 + (d / 35) ** 2), 0.1);
+    if (sr.p) glatko(sr.p.pan, Math.max(-0.8, Math.min(0.8, (dx * c0 - dz * s0) / Math.max(d, 1))), 0.1);
+    const frekv = a.ime === 'hitna'
+      ? (Math.floor(vreme / 0.6) % 2 ? 640 : 860)
+      : 620 + 520 * (0.5 - 0.5 * Math.cos(vreme * Math.PI * 2 / 2.6));
+    glatko(sr.o.frequency, frekv, a.ime === 'hitna' ? 0.01 : 0.05);
+  }
+}
+
+// ---------------------------------------------------------------
 // Petlja
 // ---------------------------------------------------------------
+// Kvalitet slike se sam smanjuje ako uredjaj ne stize (slabiji telefoni i laptopovi):
+// prvo manja rezolucija, pa retrovizor svaki drugi frejm, pa kraca daljina crtanja
+const kvalitet = { nivo: 0, n: 0, zbir: 0, preskoci: 2, daljina: 430, frejm: 0 };
+function pratiBrzinu(dt) {
+  if (rezim !== 'voznja' || document.hidden) { kvalitet.n = 0; kvalitet.zbir = 0; return; }
+  kvalitet.n++; kvalitet.zbir += dt;
+  if (kvalitet.zbir < 2) return;
+  const fps = kvalitet.n / kvalitet.zbir;
+  kvalitet.n = 0; kvalitet.zbir = 0;
+  if (kvalitet.preskoci > 0) { kvalitet.preskoci--; return; }
+  if (fps >= 42 || kvalitet.nivo >= 4) return;
+  kvalitet.nivo++;
+  const pr = renderer.getPixelRatio();
+  if (pr > 0.75) { renderer.setPixelRatio(Math.max(0.75, pr * 0.75)); promenaVelicine(); }
+  if (kvalitet.nivo >= 3) { kvalitet.daljina = 280; scena.fog.far = 280; scena.fog.near = 70; }
+  kvalitet.preskoci = 1;
+}
+
 function azurirajSvet() {
-  for (const p of DELOVI) p.m.visible = Math.hypot(p.c.x - auto.x, p.c.z - auto.z) < 430 + p.r;
+  for (const p of DELOVI) p.m.visible = Math.hypot(p.c.x - auto.x, p.c.z - auto.z) < kvalitet.daljina + p.r;
   brda.position.set(auto.x, 0, auto.z);
   animirajAktere();
 }
@@ -2148,16 +2446,22 @@ let prosli = performance.now(), zaostatak = 0;
 function petlja(sad) {
   const dt = Math.min(0.1, Math.max(0, (sad - prosli) / 1000));
   prosli = sad;
+  // telefon okrenut uspravno: voznja staje dok se ne vrati na stranu
+  if (rezim === 'voznja' && !ispit.kraj && uspravno()) postaviRezim('pauza');
   if (rezim === 'voznja') {
     zaostatak += dt;
     while (zaostatak >= KORAK) { korakLogike(KORAK); zaostatak -= KORAK; }
   } else zaostatak = 0;
   azurirajSvet();
+  azurirajZvuk();
   azurirajKameru(dt);
   if (rezim === 'voznja') azurirajHud(dt);
-  renderer.setRenderTarget(ogledalo);
-  renderer.render(scena, zadnjaKamera);
-  renderer.setRenderTarget(null);
+  pratiBrzinu(dt);
+  if (kvalitet.nivo < 2 || (kvalitet.frejm++ & 1)) {
+    renderer.setRenderTarget(ogledalo);
+    renderer.render(scena, zadnjaKamera);
+    renderer.setRenderTarget(null);
+  }
   renderer.render(scena, kamera);
   renderer.autoClear = false;
   renderer.render(hudScena, hudKamera);
@@ -2170,7 +2474,7 @@ requestAnimationFrame(petlja);
 window.VIP = {
   auto, tasteri, migavac, prebaciMigavac, novaVoznja, kreni, get ispit() { return ispit; }, get rezim() { return rezim; }, vreme: () => vreme,
   staza: { S2, S_PRELAZ, S4, S5, S_STOP, S6, HITNA_OD, S8, S_SEMAFOR, S_T, S_L, PARKING_MESTO, D_BUL },
-  akteri: AKTER, sukobi: SUKOBI, slobodnaZona, postaviZadatak(i) { ispit.zadatak = i; prikaziZadatak(); },
+  kvalitet, renderer, zvuk, akteri: AKTER, sukobi: SUKOBI, slobodnaZona, postaviZadatak(i) { ispit.zadatak = i; prikaziZadatak(); },
   svetsko: (ul, s, d) => svetsko(ULICE[ul], s, d), lokalno: (ul, x, z) => lokalno(ULICE[ul], x, z), psi: ul => ULICE[ul].psi,
   postavi(ul, s, d, v = 0) {
     const p = svetsko(ULICE[ul], s, d);

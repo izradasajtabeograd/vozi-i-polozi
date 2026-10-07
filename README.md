@@ -14,6 +14,15 @@ Igra je jedan samostalan fajl, `index.html`. Za probu ga otvori direktno u pregl
 - `←` `→` volan: koliko dugo držiš, toliko skrećeš; pušten volan se sam vraća na pravo
 - `Q` levi migavac, `E` desni migavac (ponovni pritisak gasi, sam se gasi posle manevra)
 - `P` ili `Esc` pauza (vožnja se sama pauzira i kad prozor izgubi fokus)
+- `M` zvuk uključen ili isključen (pamti se u pregledaču)
+
+Na telefonu se igra vozi sa telefonom položenim na stranu (u uspravnom položaju igra traži da se telefon okrene i pauzira vožnju). Dugmad na ekranu: dole levo volan levo i desno, dole desno kočnica i gas, iznad njih migavci, gore desno zvuk i pauza. Gas i volan mogu da se drže istovremeno. Ako pregledač dozvoli, igra posle "Kreni" prelazi preko celog ekrana.
+
+## Zvuk i brzina
+
+Zvuk se pravi u samom pregledaču (Web Audio), bez spoljnih fajlova: motor koji prati brzinu, tik tak migavca, zvuk greške, sirena hitne i policije (jača kako se približavaju, levo ili desno prema mestu vozila) i kratka melodija kad položiš.
+
+Na slabijim uređajima igra sama smanjuje kvalitet slike ako ne stiže 40 frejmova u sekundi: prvo rezoluciju, zatim osvežavanje retrovizora, pa daljinu crtanja.
 
 ## Staza 1
 
@@ -26,5 +35,5 @@ Igra je jedan samostalan fajl, `index.html`. Za probu ga otvori direktno u pregl
 - [x] Korak 3: Staza 1 sa 13 zadataka i pravilima
 - [x] Korak 4: ostali učesnici u saobraćaju (kola, pešak, tramvaj, hitna, policija)
 - [x] Korak 5: ekrani (početni, pauza, rezultat sa deljenjem i linkom ka auto školama)
-- [ ] Korak 6: kontrole za telefon
-- [ ] Korak 7: poliranje
+- [x] Korak 6: kontrole za telefon
+- [x] Korak 7: poliranje (prelazi ekrana, zvuk, prilagođavanje brzini uređaja)

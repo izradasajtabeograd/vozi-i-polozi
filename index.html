@@ -53,22 +53,45 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--asfalt);font-fam
 #bedz .ime{font-weight:900;font-size:20px;line-height:1}
 #bedz .sajt{font-size:12px;color:#c9ccd3;letter-spacing:.12em;line-height:1;margin-top:4px}
 #poeni .poslednja.obara{color:#ff8a8a;font-weight:700}
-#kraj{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(15,17,21,.55);z-index:5}
-#kraj.vidljiv{display:flex}
-#kraj .okvir{background:var(--krem);color:var(--tekst);border-radius:18px;padding:26px 30px;width:min(540px,100%);max-height:100%;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.4)}
-#kraj .nat{font-family:Overpass,system-ui,sans-serif;font-size:12px;letter-spacing:.14em;font-weight:800;color:var(--siva)}
-#kraj h2{font-family:Overpass,system-ui,sans-serif;font-weight:900;font-size:44px;line-height:1.05;margin:6px 0 0}
-#kraj h2.polozio{color:var(--zelena)}
-#kraj h2.pao{color:var(--crvena)}
-#kraj .stat{display:flex;gap:28px;margin:12px 0 14px;color:var(--siva);font-size:15px}
+/* Ekrani: pocetni, pauza, rezultat */
+.ekran{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(15,17,21,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:5}
+.ekran.vidljiv{display:flex}
+.ekran .okvir{background:var(--krem);color:var(--tekst);border-radius:18px;padding:26px 30px;width:min(560px,100%);max-height:100%;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.ekran .nat{font-family:Overpass,system-ui,sans-serif;font-size:12px;letter-spacing:.14em;font-weight:800;color:var(--siva)}
+.ekran h2{font-family:Overpass,system-ui,sans-serif;font-weight:900;font-size:44px;line-height:1.05;margin:6px 0 0}
+.ekran h2.polozio{color:var(--zelena)}
+.ekran h2.pao{color:var(--crvena)}
+.dugmad{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.dugme{font-family:Overpass,system-ui,sans-serif;font-weight:800;font-size:17px;line-height:1.2;border:0;border-radius:12px;padding:13px 20px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;text-align:center}
+.dugme.glavno{background:var(--zuta);color:var(--asfalt)}
+.dugme.tamno{background:var(--asfalt);color:var(--bela)}
+.dugme.zeleno{background:var(--zelena);color:var(--bela)}
+.dugme:hover{filter:brightness(1.06)}
+.dugme:focus-visible{outline:3px solid var(--plava);outline-offset:2px}
+.logo{display:flex;align-items:center;gap:14px}
+.logo .oznakaL{width:64px;height:64px;font-size:44px;border-radius:9px;flex:none}
+.logo .ime{font-family:Overpass,system-ui,sans-serif;font-weight:900;font-size:40px;line-height:1;color:var(--asfalt)}
+.logo .sajt{font-family:Overpass,system-ui,sans-serif;font-weight:800;font-size:13px;letter-spacing:.12em;color:var(--siva);margin-top:4px}
+.ispod{font-size:18px;margin:16px 0 4px;color:var(--tekst);font-weight:700}
+.kontrole{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;margin:16px 0 0;font-size:15px;align-items:center}
+.kontrole dt{white-space:nowrap}
+.kontrole dd{margin:0;color:var(--siva)}
+kbd{font-family:Overpass,system-ui,sans-serif;font-weight:800;font-size:14px;background:var(--bela);border:1px solid var(--linija);border-bottom-width:3px;border-radius:7px;padding:3px 8px 1px;color:var(--asfalt);display:inline-block;min-width:28px;text-align:center}
+.napomena{font-size:13px;color:var(--siva);margin:18px 0 0;line-height:1.4}
+.najbolji{font-size:14px;margin:14px 0 0;color:var(--tekst);background:var(--bela);border:1px solid var(--linija);border-radius:10px;padding:8px 12px}
+.najbolji:empty{display:none}
+#kraj .stat{display:flex;flex-wrap:wrap;gap:8px 28px;margin:12px 0 14px;color:var(--siva);font-size:15px}
 #kraj .stat b{color:var(--tekst);font-family:Overpass,system-ui,sans-serif;font-weight:900;margin-left:4px}
-#kraj ul{list-style:none;padding:0;margin:0 0 20px;border-top:1px solid var(--linija);font-size:15px}
+#rekord{display:inline-block;margin-top:8px;background:var(--zuta);color:var(--asfalt);font-family:Overpass,system-ui,sans-serif;font-weight:800;font-size:13px;letter-spacing:.06em;border-radius:999px;padding:4px 12px 2px}
+#rekord[hidden]{display:none}
+#kraj ul{list-style:none;padding:0;margin:0;border-top:1px solid var(--linija);font-size:15px}
 #kraj li{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid var(--linija)}
 #kraj li b{font-family:Overpass,system-ui,sans-serif;white-space:nowrap}
 #kraj li b.obara{color:var(--crvena)}
-#kraj button{font-family:Overpass,system-ui,sans-serif;font-weight:800;font-size:18px;background:var(--asfalt);color:var(--bela);border:0;border-radius:12px;padding:12px 24px;cursor:pointer}
-#kraj button:focus-visible{outline:3px solid var(--zuta);outline-offset:2px}
-@media (prefers-reduced-motion: reduce){#brzinomer.preko .ogr{animation:none}}
+#deljenje{font-size:14px;color:var(--zelena);font-weight:700;margin:10px 0 0;min-height:1.2em}
+#deljenjeTekst{width:100%;margin-top:8px;font:inherit;font-size:14px;padding:8px;border:1px solid var(--linija);border-radius:8px}
+#deljenjeTekst[hidden]{display:none}
+@media (max-width:520px){.ekran .okvir{padding:20px}.logo .ime{font-size:30px}.ekran h2{font-size:34px}.dugme{flex:1 1 100%}}
 #greska{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:24px;text-align:center;background:var(--asfalt);font-size:18px;line-height:1.5}
 </style>
 <script type="importmap">
@@ -115,13 +138,50 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--asfalt);font-fam
   <div><div class="ime">VOZI I POLOŽI</div><div class="sajt">AUTOSKOLEBEOGRAD.COM</div></div>
 </div>
 
-<div id="kraj" role="dialog" aria-modal="true" aria-labelledby="krajNaslov">
+<div id="start" class="ekran vidljiv" role="dialog" aria-modal="true" aria-labelledby="startNaslov">
+  <div class="okvir">
+    <div class="logo">
+      <div class="oznakaL" aria-hidden="true">L</div>
+      <div><div class="ime" id="startNaslov">VOZI I POLOŽI</div><div class="sajt">AUTOSKOLEBEOGRAD.COM</div></div>
+    </div>
+    <p class="ispod">Proveri da li bi položio vožnju u Beogradu.</p>
+    <dl class="kontrole">
+      <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>gas i kočnica</dd>
+      <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>volan, koliko držiš toliko skrećeš</dd>
+      <dt><kbd>Q</kbd> <kbd>E</kbd></dt><dd>levi i desni migavac</dd>
+      <dt><kbd>P</kbd> <kbd>Esc</kbd></dt><dd>pauza</dd>
+    </dl>
+    <p class="najbolji" id="najbolji"></p>
+    <div class="dugmad"><button class="dugme glavno" id="kreni" type="button">Kreni</button></div>
+    <p class="napomena">Igra je simulacija i ne zamenjuje obuku u auto školi.</p>
+  </div>
+</div>
+
+<div id="pauza" class="ekran" role="dialog" aria-modal="true" aria-labelledby="pauzaNaslov">
+  <div class="okvir">
+    <div class="nat">VOŽNJA JE ZAUSTAVLJENA</div>
+    <h2 id="pauzaNaslov">Pauza</h2>
+    <div class="dugmad">
+      <button class="dugme glavno" id="nastavi" type="button">Nastavi</button>
+      <button class="dugme tamno" id="ispocetka" type="button">Počni ispočetka</button>
+    </div>
+  </div>
+</div>
+
+<div id="kraj" class="ekran" role="dialog" aria-modal="true" aria-labelledby="krajNaslov">
   <div class="okvir">
     <div class="nat">KRAJ VOŽNJE</div>
     <h2 id="krajNaslov"></h2>
+    <span id="rekord" hidden>NOVI NAJBOLJI REZULTAT</span>
     <div class="stat"><div>Kazneni poeni <b id="krajPoeni"></b></div><div>Vreme vožnje <b id="krajVreme"></b></div></div>
     <ul id="krajGreske"></ul>
-    <button id="voziPonovo" type="button">Vozi ponovo</button>
+    <div class="dugmad">
+      <button class="dugme glavno" id="voziPonovo" type="button">Vozi ponovo</button>
+      <button class="dugme tamno" id="podeli" type="button">Podeli rezultat</button>
+      <a class="dugme zeleno" id="naziSkolu" href="https://autoskolebeograd.com/sve-auto-skole/">Nađi auto školu u Beogradu</a>
+    </div>
+    <p id="deljenje" role="status" aria-live="polite"></p>
+    <input id="deljenjeTekst" type="text" readonly hidden aria-label="Tekst za deljenje">
   </div>
 </div>
 
@@ -890,6 +950,12 @@ elMigLevo.addEventListener('click', () => prebaciMigavac('levo'));
 elMigDesno.addEventListener('click', () => prebaciMigavac('desno'));
 
 addEventListener('keydown', e => {
+  if ((e.code === 'KeyP' || e.code === 'Escape') && !e.repeat) {
+    if (rezim === 'voznja' && !ispit.kraj) postaviRezim('pauza');
+    else if (rezim === 'pauza') nastavi();
+    return;
+  }
+  if (rezim !== 'voznja') return;
   if (STRELICE.has(e.code)) e.preventDefault();
   const t = MAPA[e.code];
   if (t) tasteri[t] = true;
@@ -901,8 +967,10 @@ addEventListener('keyup', e => {
   const t = MAPA[e.code]; if (t) tasteri[t] = false;
 });
 function pustiSve() { for (const k in tasteri) tasteri[k] = false; }
-addEventListener('blur', pustiSve);
-document.addEventListener('visibilitychange', () => { if (document.hidden) pustiSve(); });
+// kad prozor ili tab izgubi fokus, voznja se sama pauzira
+function automatskaPauza() { pustiSve(); if (rezim === 'voznja' && !ispit.kraj) postaviRezim('pauza'); }
+addEventListener('blur', automatskaPauza);
+document.addEventListener('visibilitychange', () => { if (document.hidden) automatskaPauza(); });
 platno.focus();
 
 // ---------------------------------------------------------------
@@ -1843,16 +1911,100 @@ function porukaZaPrikaz() {
 }
 
 // ---------------------------------------------------------------
-// Kraj voznje (privremeni ekran, pravi ekrani stizu u koraku 5)
+// Ekrani: pocetni, pauza i rezultat
 // ---------------------------------------------------------------
+const SAJT_SKOLE = 'https://autoskolebeograd.com/sve-auto-skole/';
+// adresa igre za deljenje: prava adresa kad je igra na serveru, inace planirana stranica na sajtu
+const IGRA_URL = location.protocol === 'https:' ? location.origin + location.pathname : 'https://autoskolebeograd.com/vozi-i-polozi/';
+// na sajtu (ili u iframe-u na sajtu) link ka auto skolama ide u istom prozoru, samostalno u novom
+const NA_SAJTU = /(^|\.)autoskolebeograd\.com$/.test(location.hostname) ||
+  (window.top !== window && /autoskolebeograd\.com/.test(document.referrer));
+const KLJUC_NAJBOLJI = 'voziIPolozi.najbolji';
+
+const elStart = document.getElementById('start');
+const elPauza = document.getElementById('pauza');
 const elKraj = document.getElementById('kraj');
+const elNaziSkolu = document.getElementById('naziSkolu');
+elNaziSkolu.href = SAJT_SKOLE;
+elNaziSkolu.target = NA_SAJTU ? '_top' : '_blank';
+if (!NA_SAJTU) elNaziSkolu.rel = 'noopener';
+
+let rezim = 'start';             // start, voznja, pauza
+function postaviRezim(r) {
+  rezim = r;
+  elStart.classList.toggle('vidljiv', r === 'start');
+  elPauza.classList.toggle('vidljiv', r === 'pauza');
+  if (r !== 'voznja') pustiSve();
+  if (r === 'pauza') document.getElementById('nastavi').focus();
+  if (r === 'voznja') platno.focus();
+}
+function nastavi() { postaviRezim('voznja'); }
+function kreni() { novaVoznja(); postaviRezim('voznja'); }
+document.getElementById('kreni').addEventListener('click', kreni);
+document.getElementById('nastavi').addEventListener('click', nastavi);
+document.getElementById('ispocetka').addEventListener('click', kreni);
+document.getElementById('voziPonovo').addEventListener('click', kreni);
+
+function formatVreme(sek) { sek = Math.round(sek); return `${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, '0')}`; }
+// "sa 1 kaznenim poenom", "sa 3 kaznena poena", "sa 7 kaznenih poena"
+function saPoena(n) {
+  if (n === 0) return 'bez kaznenih poena';
+  const d = n % 10, st = n % 100;
+  if (d === 1 && st !== 11) return `sa ${n} kaznenim poenom`;
+  if (d >= 2 && d <= 4 && (st < 12 || st > 14)) return `sa ${n} kaznena poena`;
+  return `sa ${n} kaznenih poena`;
+}
+
+// Najbolji rezultat u ovom pregledacu (localStorage, igra radi i bez njega)
+function citajNajbolji() {
+  try { return JSON.parse(localStorage.getItem(KLJUC_NAJBOLJI)) || null; } catch (e) { return null; }
+}
+function sacuvajAkoJeBolji(r) {
+  const b = citajNajbolji();
+  const bolji = !b || (r.polozio && !b.polozio) ||
+    (r.polozio === b.polozio && (r.poeni < b.poeni || (r.poeni === b.poeni && r.vreme < b.vreme)));
+  if (!bolji) return false;
+  try { localStorage.setItem(KLJUC_NAJBOLJI, JSON.stringify(r)); } catch (e) { return false; }
+  return true;
+}
+function prikaziNajbolji() {
+  const b = citajNajbolji(), el = document.getElementById('najbolji');
+  el.textContent = !b ? '' : b.polozio
+    ? `Tvoj najbolji rezultat: položio ${saPoena(b.poeni)}, za ${formatVreme(b.vreme)}.`
+    : 'Prošli put nisi položio. Probaj ponovo!';
+}
+prikaziNajbolji();
+
+function tekstDeljenja() {
+  return ispit.polozio
+    ? `Položio sam vožnju u igri VOZI I POLOŽI ${saPoena(ispit.poeni)}. Probaj ti:`
+    : 'Nisam položio vožnju u igri VOZI I POLOŽI. Probaj ti da li bi prošao:';
+}
+async function podeli() {
+  const tekst = tekstDeljenja();
+  const elStatus = document.getElementById('deljenje'), elTekst = document.getElementById('deljenjeTekst');
+  elStatus.textContent = ''; elTekst.hidden = true;
+  if (navigator.share) {
+    try { await navigator.share({ title: 'VOZI I POLOŽI', text: tekst, url: IGRA_URL }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const sve = `${tekst} ${IGRA_URL}`;
+  try {
+    await navigator.clipboard.writeText(sve);
+    elStatus.textContent = 'Tekst i link su kopirani. Nalepi ih gde želiš.';
+  } catch (e) {
+    elTekst.value = sve; elTekst.hidden = false; elTekst.focus(); elTekst.select();
+    elStatus.textContent = 'Kopiraj tekst ispod i podeli ga.';
+  }
+}
+document.getElementById('podeli').addEventListener('click', podeli);
+
 function prikaziKraj() {
   const h = document.getElementById('krajNaslov');
   h.textContent = ispit.polozio ? 'POLOŽIO' : 'NIJE POLOŽIO';
   h.className = ispit.polozio ? 'polozio' : 'pao';
   document.getElementById('krajPoeni').textContent = `${ispit.poeni} / ${MAKS_POENA}`;
-  const sek = Math.round(ispit.trajanje);
-  document.getElementById('krajVreme').textContent = `${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, '0')}`;
+  document.getElementById('krajVreme').textContent = formatVreme(ispit.trajanje);
   const ul = document.getElementById('krajGreske');
   ul.textContent = '';
   if (!ispit.greske.length) {
@@ -1866,10 +2018,15 @@ function prikaziKraj() {
     li.append(levo, desno);
     ul.appendChild(li);
   }
+  const rekord = sacuvajAkoJeBolji({ polozio: ispit.polozio, poeni: ispit.poeni, vreme: Math.round(ispit.trajanje) });
+  document.getElementById('rekord').hidden = !(rekord && ispit.polozio);
+  document.getElementById('deljenje').textContent = '';
+  document.getElementById('deljenjeTekst').hidden = true;
+  prikaziNajbolji();
+  pustiSve();
   elKraj.classList.add('vidljiv');
   document.getElementById('voziPonovo').focus();
 }
-document.getElementById('voziPonovo').addEventListener('click', novaVoznja);
 
 function novaVoznja() {
   noviIspit();
@@ -1884,7 +2041,6 @@ function novaVoznja() {
   prikaziZadatak();
   prikaziPoene(null);
   elKraj.classList.remove('vidljiv');
-  platno.focus();
 }
 
 // ---------------------------------------------------------------
@@ -1986,16 +2142,19 @@ function korakLogike(dt) {
 
 napraviAktere();
 novaVoznja();
+document.getElementById('kreni').focus();
 
 let prosli = performance.now(), zaostatak = 0;
 function petlja(sad) {
   const dt = Math.min(0.1, Math.max(0, (sad - prosli) / 1000));
   prosli = sad;
-  zaostatak += dt;
-  while (zaostatak >= KORAK) { korakLogike(KORAK); zaostatak -= KORAK; }
+  if (rezim === 'voznja') {
+    zaostatak += dt;
+    while (zaostatak >= KORAK) { korakLogike(KORAK); zaostatak -= KORAK; }
+  } else zaostatak = 0;
   azurirajSvet();
   azurirajKameru(dt);
-  azurirajHud(dt);
+  if (rezim === 'voznja') azurirajHud(dt);
   renderer.setRenderTarget(ogledalo);
   renderer.render(scena, zadnjaKamera);
   renderer.setRenderTarget(null);
@@ -2009,7 +2168,7 @@ requestAnimationFrame(petlja);
 
 // Za testiranje iz konzole: VIP.simuliraj(sekundi) vrti logiku bez crtanja
 window.VIP = {
-  auto, tasteri, migavac, prebaciMigavac, novaVoznja, get ispit() { return ispit; }, vreme: () => vreme,
+  auto, tasteri, migavac, prebaciMigavac, novaVoznja, kreni, get ispit() { return ispit; }, get rezim() { return rezim; }, vreme: () => vreme,
   staza: { S2, S_PRELAZ, S4, S5, S_STOP, S6, HITNA_OD, S8, S_SEMAFOR, S_T, S_L, PARKING_MESTO, D_BUL },
   akteri: AKTER, sukobi: SUKOBI, slobodnaZona, postaviZadatak(i) { ispit.zadatak = i; prikaziZadatak(); },
   svetsko: (ul, s, d) => svetsko(ULICE[ul], s, d), lokalno: (ul, x, z) => lokalno(ULICE[ul], x, z), psi: ul => ULICE[ul].psi,

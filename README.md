@@ -8,11 +8,12 @@ Kompletan opis igre je u [docs/brief.md](docs/brief.md).
 
 Igra je jedan samostalan fajl, `index.html`. Za probu ga otvori direktno u pregledaču (Chrome, Firefox, Safari). Za objavljivanje se taj fajl postavi na server kao obična statična stranica, bez ikakvih dodatnih podešavanja. Potrebna je internet veza zbog Three.js biblioteke (jsdelivr CDN) i Google fontova.
 
-## Kontrole (trenutno)
+## Kontrole
 
 - `↑` gas, `↓` kočnica
 - `←` `→` volan: koliko dugo držiš, toliko skrećeš; pušten volan se sam vraća na pravo
 - `Q` levi migavac, `E` desni migavac (ponovni pritisak gasi, sam se gasi posle manevra)
+- `P` ili `Esc` pauza (vožnja se sama pauzira i kad prozor izgubi fokus)
 
 ## Staza 1
 
@@ -24,6 +25,6 @@ Igra je jedan samostalan fajl, `index.html`. Za probu ga otvori direktno u pregl
 - [x] Korak 2: HUD (brzinomer, migavci, retrovizor)
 - [x] Korak 3: Staza 1 sa 8 zadataka i pravilima
 - [x] Korak 4: ostali učesnici u saobraćaju (kola, pešak, tramvaj, hitna, policija)
-- [ ] Korak 5: ekrani (početni, pauza, rezultat)
+- [x] Korak 5: ekrani (početni, pauza, rezultat sa deljenjem i linkom ka auto školama)
 - [ ] Korak 6: kontrole za telefon
 - [ ] Korak 7: poliranje

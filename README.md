@@ -23,7 +23,7 @@ Igra je jedan samostalan fajl, `index.html`. Za probu ga otvori direktno u pregl
 
 - [x] Korak 1: scena, kamera iz kola, hauba, volan, vožnja pravo
 - [x] Korak 2: HUD (brzinomer, migavci, retrovizor)
-- [x] Korak 3: Staza 1 sa 8 zadataka i pravilima
+- [x] Korak 3: Staza 1 sa 13 zadataka i pravilima
 - [x] Korak 4: ostali učesnici u saobraćaju (kola, pešak, tramvaj, hitna, policija)
 - [x] Korak 5: ekrani (početni, pauza, rezultat sa deljenjem i linkom ka auto školama)
 - [ ] Korak 6: kontrole za telefon

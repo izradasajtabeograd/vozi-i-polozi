@@ -16,21 +16,25 @@ Ovaj fajl je kompletan brief za izradu igre. Pročitaj ga ceo pre nego što poč
 
 ## 2. Tehnički okvir
 
-- **Jedan samostalan fajl `index.html`** sa ugrađenim CSS-om i JS-om. Bez build koraka, bez npm-a u produkciji.
-- **3D:** Three.js preko CDN-a (cdnjs ili jsdelivr, fiksna verzija, ES module import map).
+- **Jedan samostalan fajl `index.html`** sa ugrađenim CSS-om i JS-om. Izvor u korenu repoa radi bez build koraka.
+- **Verzija za sajt** *(odluka Gorana posle koraka 7)*: `npm run build` pravi `dist/index.html`, u koji su ubačeni Three.js i fontovi (nema spoljnih zahteva), izbačen je deo za testiranje, kod igre je zamagljen, a igra radi samo na autoskolebeograd.com (na drugom domenu, sa diska ili u tuđem iframe-u prikazuje poziv da se igra na sajtu). Uz nju ide `dist/vozi-i-polozi-deljenje.png`, slika za deljenje.
+- **3D:** Three.js 0.170.0; u izvoru preko jsdelivr CDN-a (import map), u verziji za sajt ubačen u fajl.
 - **Fontovi:** Google Fonts, Overpass (naslovi, brojevi, weight 800 do 900) i Figtree (tekst, 500 i 700).
 - **Bez backend-a.** Rezultat i najbolji skor mogu u localStorage (uvek u try/catch, igra mora da radi i bez njega).
 - **Performanse:** stabilnih 60 fps na prosečnom laptopu, prihvatljivo na srednjem Android telefonu. Low poly geometrija, malo svetala, bez senki ili sa jednom jeftinom.
-- **Radi offline** kad se jednom učita (osim fontova i CDN-a).
+- **Radi offline** kad se jednom učita (verzija za sajt nema nikakvih spoljnih zahteva).
 - **Veličina:** cilj ispod 300 KB bez biblioteka.
 - **Repo struktura (predlog):**
   ```
-  /index.html          igra (sve u jednom)
-  /README.md           kako se pokreće i kako se ugrađuje
-  /docs/brief.md       ovaj fajl
-  /assets/og.png       slika za deljenje 1200x630 (opciono)
+  /index.html                        izvor igre (sve u jednom, čitljiv)
+  /build/build.mjs                  pravi verziju za sajt
+  /build/slika-deljenje.mjs         pravi sliku za deljenje 1200x630
+  /dist/index.html                  verzija za sajt (ide na server)
+  /dist/vozi-i-polozi-deljenje.png  slika za deljenje (ide na server pored igre)
+  /README.md                        kako se pokreće i objavljuje
+  /docs/brief.md                    ovaj fajl
   ```
-- **Hosting za test:** GitHub Pages iz main grane.
+- **Hosting:** Goranov server, kao samostalna stranica na https://autoskolebeograd.com/vozi-i-polozi/. GitHub Pages se ne koristi (repo je privatan).
 
 ---
 
@@ -208,7 +212,7 @@ Svi linkovi u igri moraju biti puni URL-ovi sa https:// i domenom. Nikada relati
 
 - Igra ostaje samostalan fajl. Na sajt bi išla kao posebna stranica, na primer `https://autoskolebeograd.com/vozi-i-polozi/`, ugrađena kroz iframe ili kao fajl u uploads.
 - **Goranovo pravilo:** na njegovim WordPress sajtovima se NIKADA ne piše CSS ni PHP bez njegovog izričitog odobrenja. Ugradnja iframe-a ili bilo kog koda na sajt ide tek kad on odobri, i to kroz WPCode ili Elementor HTML widget po njegovom izboru.
-- U ovoj GitHub sesiji radi se samo igra u repou i test preko GitHub Pages.
+- U ovoj GitHub sesiji radi se samo igra u repou. Postavljanje na server radi Goran.
 
 ---
 
@@ -216,7 +220,7 @@ Svi linkovi u igri moraju biti puni URL-ovi sa https:// i domenom. Nikada relati
 
 1. Scena: put, trotoari, zgrade, nebo, kamera iz kola, hauba i volan. Vožnja pravo sa gasom i kočnicom.
 2. HUD: brzinomer, migavci (Q/E sa treptanjem), retrovizor.
-3. Staza 1 sa svih 8 zona i sistemom pravila.
+3. Staza 1 sa svih 13 zadataka i sistemom pravila.
 4. Ostali učesnici: pešak, auto sa desne strane, semafor, auto iza u retrovizoru.
 5. Ekrani: početni, pauza, rezultat sa deljenjem.
 6. Kontrole za telefon.
@@ -228,16 +232,16 @@ Posle koraka 1, 3 i 5 napraviti screenshot i poslati Goranu na pregled.
 
 ## 13. Kriterijumi za završetak prve verzije
 
-- [ ] `index.html` se otvara direktno u Chrome, Firefox i Safari bez grešaka u konzoli.
-- [ ] Sva 8 zadataka rade i svaki se može i proći i pasti.
-- [ ] Migavci trepću i gase se sami posle manevra.
-- [ ] Brzinomer i ograničenje su tačni.
-- [ ] Ekran rezultata prikazuje tačan spisak grešaka.
-- [ ] Dugme "Nađi auto školu u Beogradu" vodi na https://autoskolebeograd.com/sve-auto-skole/
-- [ ] Igra radi na telefonu u landscape režimu sa dugmadima na ekranu.
-- [ ] 60 fps na laptopu, bez trzanja.
-- [ ] Svi tekstovi na srpskom, latinica, bez dugih crta.
-- [ ] Oznaka L je svuda plava sa belim slovom.
+- [ ] `index.html` se otvara direktno u Chrome, Firefox i Safari bez grešaka u konzoli. *(Chrome proveren automatski; Firefox i Safari treba proveriti ručno.)*
+- [x] Svih 13 zadataka rade i svaki se može i proći i pasti.
+- [x] Migavci trepću i gase se sami posle manevra.
+- [x] Brzinomer i ograničenje su tačni.
+- [x] Ekran rezultata prikazuje tačan spisak grešaka.
+- [x] Dugme "Nađi auto školu u Beogradu" vodi na https://autoskolebeograd.com/sve-auto-skole/
+- [ ] Igra radi na telefonu u landscape režimu sa dugmadima na ekranu. *(Provereno u emulaciji telefona; treba proba na pravom Android telefonu i iPhone-u.)*
+- [ ] 60 fps na laptopu, bez trzanja. *(Treba proveriti na pravom laptopu; igra sama smanjuje kvalitet na slabijim uređajima.)*
+- [x] Svi tekstovi na srpskom, latinica, bez dugih crta.
+- [x] Oznaka L je svuda plava sa belim slovom.
 
 ---
 

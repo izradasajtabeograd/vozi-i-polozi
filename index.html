@@ -1,4 +1,9 @@
 <!doctype html>
+<!--
+  VOZI I POLOŽI
+  Copyright © 2026 autoskolebeograd.com. Sva prava zadržana.
+  Kopiranje, menjanje, objavljivanje ili ugradnja na druge sajtove bez pisane dozvole nije dozvoljeno.
+-->
 <html lang="sr-Latn">
 <head>
 <meta charset="utf-8">
@@ -6,6 +11,22 @@
 <title>VOZI I POLOŽI</title>
 <meta name="description" content="Proveri da li bi položio vožnju u Beogradu. Igra autoskolebeograd.com">
 <meta name="theme-color" content="#15171C">
+<meta name="author" content="autoskolebeograd.com">
+<meta name="copyright" content="© 2026 autoskolebeograd.com, sva prava zadržana">
+<link rel="canonical" href="https://autoskolebeograd.com/vozi-i-polozi/">
+<!-- izgled linka kad se podeli (Viber, WhatsApp, Facebook, X) -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="sr_RS">
+<meta property="og:site_name" content="autoskolebeograd.com">
+<meta property="og:title" content="VOZI I POLOŽI: da li bi položio vožnju u Beogradu?">
+<meta property="og:description" content="Vozi kroz 13 situacija sa vozačkog ispita: pešak, STOP, tramvaj, hitna, policija, bulevar i parkiranje. Probaj da položiš bez kaznenih poena.">
+<meta property="og:url" content="https://autoskolebeograd.com/vozi-i-polozi/">
+<meta property="og:image" content="https://autoskolebeograd.com/vozi-i-polozi/vozi-i-polozi-deljenje.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pogled iz kola na beogradsku ulicu u igri VOZI I POLOŽI">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%232846A0'/%3E%3Cpath d='M20 12h9v32h16v8H20z' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@800;900&family=Figtree:wght@500;700&display=swap" rel="stylesheet">
@@ -148,6 +169,10 @@ kbd{font-family:Overpass,system-ui,sans-serif;font-weight:800;font-size:14px;bac
 #deljenjeTekst{width:100%;margin-top:8px;font:inherit;font-size:14px;padding:8px;border:1px solid var(--linija);border-radius:8px}
 #deljenjeTekst[hidden]{display:none}
 @media (max-width:520px){.ekran .okvir{padding:20px}.logo .ime{font-size:30px}.ekran h2{font-size:34px}.dugme{flex:1 1 100%}}
+#drugiSajt{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:var(--asfalt);font-family:Overpass,system-ui,sans-serif}
+#drugiSajt .oznakaL{width:64px;height:64px;font-size:44px}
+#drugiSajt b{font-size:30px;font-weight:900}
+#drugiSajt span{font-family:Figtree,system-ui,sans-serif;font-size:17px;color:#c9ccd3;max-width:340px;line-height:1.4}
 #greska{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:24px;text-align:center;background:var(--asfalt);font-size:18px;line-height:1.5}
 </style>
 <script type="importmap">
@@ -256,7 +281,7 @@ kbd{font-family:Overpass,system-ui,sans-serif;font-weight:800;font-size:14px;bac
     </dl>
     <p class="najbolji" id="najbolji"></p>
     <div class="dugmad"><button class="dugme glavno" id="kreni" type="button">Kreni</button></div>
-    <p class="napomena">Igra je simulacija i ne zamenjuje obuku u auto školi.</p>
+    <p class="napomena">Igra je simulacija i ne zamenjuje obuku u auto školi. © 2026 autoskolebeograd.com</p>
   </div>
 </div>
 
@@ -288,10 +313,17 @@ kbd{font-family:Overpass,system-ui,sans-serif;font-weight:800;font-size:14px;bac
   </div>
 </div>
 
+<div id="drugiSajt" role="alert">
+  <div class="oznakaL" aria-hidden="true">L</div>
+  <b>VOZI I POLOŽI</b>
+  <span>Ova igra se igra samo na sajtu autoskolebeograd.com.</span>
+  <a class="dugme glavno" href="https://autoskolebeograd.com/vozi-i-polozi/" target="_top">Igraj na autoskolebeograd.com</a>
+</div>
 <div id="greska">Igra ne može da se pokrene. Proveri internet vezu i da li pregledač podržava WebGL.</div>
 
 <script type="module">
 import * as THREE from 'three';
+/* @@ZAKLJUCAVANJE */
 
 // ---------------------------------------------------------------
 // Podešavanja
@@ -2577,6 +2609,7 @@ function petlja(sad) {
 }
 requestAnimationFrame(petlja);
 
+// @@TEST_POCETAK (alat za pakovanje ovo izbacuje iz verzije za sajt)
 // Za testiranje iz konzole: VIP.simuliraj(sekundi) vrti logiku bez crtanja
 window.VIP = {
   auto, tasteri, migavac, prebaciMigavac, novaVoznja, kreni, get ispit() { return ispit; }, get rezim() { return rezim; }, vreme: () => vreme,
@@ -2590,6 +2623,7 @@ window.VIP = {
   },
   simuliraj(sekundi) { for (let t = 0; t < sekundi - 1e-9; t += KORAK) { korakLogike(KORAK); azurirajHud(KORAK); } animirajAktere(); }
 };
+// @@TEST_KRAJ
 </script>
 </body>
 </html>

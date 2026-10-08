@@ -75,6 +75,7 @@ Pratiti Prilog A. Elementi:
 1. **Gore levo, zadatak:** tamna kartica, mali žuti natpis "ZADATAK 3 / 8", naslov zadatka (npr. "Raskrsnica sa znakom STOP") i jedna rečenica uputstva.
 2. **Gore u sredini, retrovizor:** pravougaonik sa zaobljenim ivicama, prikazuje pogled unazad (drugi render ili jeftina kamera u maloj rezoluciji). Na stazi postoji auto iza igrača koji se vidi u retrovizoru, bitno za prestrojavanje.
 3. **Gore desno, kazneni poeni:** "KAZNENI POENI", veliki broj "2 / 10", ispod poslednja greška narandžastom bojom.
+2a. **Levo i desno od retrovizora, vozila sa strane** *(dodato posle koraka 7, Goran)*: iz kabine se ne može pogledati levo i desno, pa kad vozilo prilazi raskrsnici ispred igrača, pored retrovizora se pojavi okvir sa strelicom na strani odakle dolazi: vrsta vozila ("AUTO ZDESNA", "TRAMVAJ SLEVA", "POLICIJA ZDESNA"), koliko metara mu je ostalo do raskrsnice i da li vozi ili stoji. Okvir je žut dok ima vremena, a crven kad je igrač blizu raskrsnice i vozilo stiže za manje od oko 4 sekunde (treba stati i propustiti). Vozila koja dolaze spreda ili su već u raskrsnici se ne prikazuju, jer se vide kroz staklo.
 4. **Ispod retrovizora, upozorenje:** žuta pilula sa kratkom porukom ("STOP za 25 m, usporavaj"). Pojavljuje se samo kad treba.
 5. **Dole:** hauba kola (krem), volan (tamni), A stubovi.
 6. **Dole desno, brzinomer:** krug, velika brojka km/h, ispod crvena pilula sa trenutnim ograničenjem.
@@ -86,7 +87,7 @@ Pratiti Prilog A. Elementi:
 ## 5. Kontrole
 
 ### Tastatura
-- `↑` gas, `↓` kočnica (držanjem do nule), `←` `→` volan (koliko dugo se drži, toliko skreće).
+- `↑` gas, `↓` kočnica (držanjem do nule; ako se drži i posle zaustavljanja, posle oko 0,8 s auto polako ide u rikverc do 5 km/h, brzinomer pokazuje R, puštanje ga zaustavlja), `←` `→` volan (koliko dugo se drži, toliko skreće).
 - `Q` levi migavac, `E` desni migavac (toggle; gasi se sam posle završenog skretanja ili prestrojavanja, kao pravi).
 - `Space` ručna kočnica (opciono), `P` ili `Esc` pauza.
 
